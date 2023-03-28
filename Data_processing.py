@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2004]                          #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002,2003,2004]                          #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -30,10 +30,9 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 """Calculation control"""
 
-select_stations = True
+select_stations = True                  #Select stations that are in arctic domain
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
-monthly_station_statistics = False              #Save station statistics: lat, lon
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = True
 select_stations_lat_lon = False
@@ -74,7 +73,7 @@ for _ , year in enumerate(years):
 
     """Select stations that are in arctic domain"""
 
-    if select_stations == True:
+    if select_stations:
 
         racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory + racmo_snowdepth).sel(time=slice(year + '-01-01', year + '-12-31'))['sndp']
         rlats = racmo_24_arc_snowheight['rlat'].values
@@ -131,7 +130,7 @@ for _ , year in enumerate(years):
 
     """Reformat raw data into station specific data, only when true"""
     
-    if calc_stationdata == True:
+    if calc_stationdata:
         
         print('Transforming stationdata: per station yearly record')
         
@@ -176,7 +175,7 @@ for _ , year in enumerate(years):
 
     """Interpolate and select data with a bigger gap then days_missing_limit"""
     
-    if interpolate_stationdata == True:
+    if interpolate_stationdata:
         
         print('Interpolating stationdata')
        
@@ -194,69 +193,7 @@ for _ , year in enumerate(years):
 
     """Station specific data to csv"""
     
-    if monthly_station_statistics == True:
-        
-        print('Extracting station statistics')
-        
-        in_situ_data_directory_yearlist = os.listdir(in_situ_data_directory_year)
-        openfiles = []
-        
-        for i,v in enumerate(in_situ_data_directory_yearlist):
-            try: in_situ_data_directory_yearlist[i].split('.')[1] == 'csv'
-            
-            except:
-                None
-            else: 
-                if in_situ_data_directory_yearlist[i].split('.')[1] == 'csv':
-    
-                    openfiles.append(v)
-                
-        observation = []
-        
-        for i,v in enumerate(openfiles):
-            observation.append(pd.read_csv(in_situ_data_directory_year+v))
-        
-        observation = pd.concat(observation)
-        
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv',index_col=0)
-        stations = np.array(stationarray.columns)
-
-        indexes = ['latitude','longitude','rlat','rlon','first_day_under_threshold','last_day_under_threshold']
-        
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time = slice(year+'-01-01',year+'-12-31'))['sndp']
-    
-        rlats=racmo_24_arc_snowheight['rlat']
-        rlons=racmo_24_arc_snowheight['rlon']
-    
-        station_stats = pd.DataFrame(index=indexes , columns =stations)
-    
-        for i,v in enumerate(stations):
-            
-            station_vals = observation.loc[(observation['station_name'] == v)].iloc[0]
-            
-            station_stats.loc['latitude',v] = station_vals['latitude']
-            station_stats.loc['longitude',v] = station_vals['longitude']
-            
-            y,x = Calculations.return_index_from_coordinates(station_stats.loc['latitude',v],station_stats.loc['longitude',v],racmo_24_arc_snowheight)
-            
-            station_stats.loc['rlat',v] = rlats[x]
-            station_stats.loc['rlot',v] = rlons[y]
-            
-            
-            try: station_stats.loc['first_day_under_threshold',v] = stationarray.index[stationarray[v]>=snow_height_threshold].tolist()[0]
-            except:
-                station_stats.loc['first_day_under_threshold',v] = np.nan
-                
-            try: station_stats.loc['last_day_under_threshold',v] = stationarray.index[stationarray[v]>=snow_height_threshold].tolist()[-1]
-            except:
-                station_stats.loc['last_day_under_threshold',v] = np.nan
-    
-        station_stats.to_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv')
-        
-
-    """Extract monthly data and save to directory"""
-    
-    if monthly_data == True:
+    if monthly_data:
         
         print("saving racmo and in-situ data as monthly files, month:")
         
@@ -308,7 +245,7 @@ for _ , year in enumerate(years):
             month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
             locdata.to_csv(monthdir_racmo+'/stationdata.csv')
             
-    if monthly_data_test == True:
+    if monthly_data_test:
         
         print("Test: saving racmo and in-situ data as monthly files, month:")
         
@@ -381,7 +318,7 @@ for _ , year in enumerate(years):
         
         filtered_station_stats.to_csv(in_situ_data_directory_year_calculated+'stations_in_latlonrange_'+year+'.csv')
 
-    if monthly_statistics == True:
+    if monthly_statistics:
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
 
         stations = station_stats.columns
@@ -398,6 +335,8 @@ for _ , year in enumerate(years):
 
             in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv',index_col=0)
             racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv',index_col=0)
+
+            print(racmo.mean())
 
             statistics_stations['racmo_mean'] = racmo[stations].mean()
             statistics_stations['in_situ_mean'] = in_situ[stations].mean()
