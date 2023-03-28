@@ -23,7 +23,7 @@ from ease_lonlat import EASE2GRID, SUPPORTED_GRIDS
 import matplotlib as mpl
 import cartopy.crs as ccrs
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+os.chdir('/')
 
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data

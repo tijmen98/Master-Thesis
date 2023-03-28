@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import matplotlib.colors as colors
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+os.chdir('/')
 
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data

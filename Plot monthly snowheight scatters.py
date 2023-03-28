@@ -13,14 +13,14 @@ import matplotlib as mpl
 import math
 import scipy
 
-year = str(2003)
+year = str(2004)
 
 
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
 in_situ_data_directory_year_calculated = in_situ_data_directory+year+'/Calculated/'
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/'
+racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
 
 fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
 
@@ -47,7 +47,7 @@ if scatterplot == True:
             xindex = math.floor(month/4)
             yindex = int(month - math.floor(month/4)*4)
     
-        monthdir_in_situ = in_situ_data_directory_year_calculated+'/month_'+str(month+1)
+        monthdir_in_situ = in_situ_data_directory_year_calculated+'month_'+str(month+1)
         monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month+1)
     
     

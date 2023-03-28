@@ -21,17 +21,17 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2003] #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
-months = [4,5,6,7,8,9,10,11]
+years = [2004] #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+months = [1,2,3,4,5,6,7,8,9,10,11]
 snow_height_threshold = 10 # Threshold in cm
 breakdate = '-07-01' # Split date between accumulation and melt season
 days_missing_limit = 5 # Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
 
 """Calculation control"""
 
-calc_stationdata = False            #Extract station snowdepth data and save to csv per station
+calc_stationdata = True            #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False     #Interpolate
-station_statistics = False          #Save station statistics: lat, lon
+station_statistics = True          #Save station statistics: lat, lon
 monthly_data = True                 #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False 
 select_stations = False
@@ -94,7 +94,7 @@ for _ , year in enumerate(years):
         
         observations = []
         
-        for i,v in enumerate(openfiles):
+        for i , v in enumerate(openfiles):
             
             observations.append(pd.read_csv(in_situ_data_directory_year+v))
 
@@ -105,14 +105,15 @@ for _ , year in enumerate(years):
         
         
         dateindex = pd.date_range(year+"-01-01", periods=365, freq="D")
-        stationarray = pd.DataFrame(index=dateindex , columns =stations)
-        
+        stationarray = pd.DataFrame(index=dateindex, columns =stations)
 
         for i,v in enumerate(stations):
             
             station_snow_depth = observation.loc[(observation['station_name'] == v) & (observation['observed_variable'] == 'snow_depth')]
             for i2 , v2 in enumerate(station_snow_depth['observation_value']):
-                stationarray.loc[station_snow_depth['date_time'].iloc[i2],v] = v2
+                try: stationarray.loc[station_snow_depth['date_time'].iloc[i2].split(' ')[0],v] = v2
+                
+                except: stationarray.loc[station_snow_depth['date_time'].iloc[i2],v] = v2
         
         stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv')
     
@@ -216,7 +217,8 @@ for _ , year in enumerate(years):
         
         for month in months:
             
-            if len(racmo_24_arc_snowheight.time.values) != 365:
+            if len(racmo_24_arc_snowheight.time.values) < 364:
+                print(racmo_24_arc_snowheight.time.values)
                 print('year '+year+' is not included in the racmo dataset, please select different dataset.')
                 break
             
@@ -224,8 +226,8 @@ for _ , year in enumerate(years):
             
             """get data for given month"""
             
-            month_racmo = racmo_24_arc_snowheight.sel(time = slice(str(startdates[month]),str(enddates[month])))
-            month_in_situ = stationarray.loc[str(startdates[month]-datetime.timedelta(days=1)):str(enddates[month])]
+            month_racmo = racmo_24_arc_snowheight.sel(time = slice(str(startdates[month]),str(enddates[month]-datetime.timedelta(days=1))))
+            month_in_situ = stationarray.loc[str(startdates[month]):str(enddates[month]-datetime.timedelta(days=1))]
         
             """Check for directory to exist"""
             
