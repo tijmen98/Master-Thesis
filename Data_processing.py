@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002,2003,2004]                          #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -30,7 +30,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 """Calculation control"""
 
-select_stations = True                  #Select stations that are in arctic domain
+select_stations = False                  #Select stations that are in arctic domain
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
@@ -299,7 +299,7 @@ for _ , year in enumerate(years):
             """Get racmo snowheight for same locations"""
 
             month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
-            month_racmo.to_csv(monthdir_racmo+'/stationdata.csv')
+            month_racmo_per_station.to_csv(monthdir_racmo+'/stationdata.csv')
 
     if select_stations_lat_lon == True:
 
