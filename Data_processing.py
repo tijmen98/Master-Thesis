@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2003,2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -30,7 +30,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 """Calculation control"""
 
-select_stations = False                  #Select stations that are in arctic domain
+select_stations = True                  #Select stations that are in arctic domain
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
@@ -319,6 +319,9 @@ for _ , year in enumerate(years):
         filtered_station_stats.to_csv(in_situ_data_directory_year_calculated+'stations_in_latlonrange_'+year+'.csv')
 
     if monthly_statistics:
+
+        print('calculating monthly statistics:')
+
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
 
         stations = station_stats.columns
@@ -335,8 +338,6 @@ for _ , year in enumerate(years):
 
             in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv',index_col=0)
             racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv',index_col=0)
-
-            print(racmo.mean())
 
             statistics_stations['racmo_mean'] = racmo[stations].mean()
             statistics_stations['in_situ_mean'] = in_situ[stations].mean()
