@@ -26,12 +26,7 @@ import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
 import Thesis_Functions.plotting as Plotting
 
-norway=True
-alaska = False
-
-year = 2001
-
-
+years = 2001
 
 crs_racmo = CRS.from_proj4("-m 57.295779506 +proj=ob_tran +o_proj=latlon +o_lat_p=6.6 +lon_0=180.0")
 crs_stations = CRS.from_string("EPSG:4326")
@@ -77,24 +72,7 @@ for i,v in enumerate(stations):
     
     else:
         locdata.drop(columns=[v],inplace=True)
-    
-    
-    # if i ==10:
-    #     break
-    
-    
-if norway == True:
-    
-    axs.set_ylim(37,22)
-    axs.set_xlim(0,-15)
 
-if alaska == True:
-    
-    axs.set_ylim(-30,-10)
-    axs.set_xlim(0,20)
-    
-
-#%%
 
 figlim=100
 

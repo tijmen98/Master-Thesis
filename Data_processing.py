@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2003,2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2001,2002,2003,2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -30,11 +30,11 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 """Calculation control"""
 
-select_stations = True                  #Select stations that are in arctic domain
+select_stations = False                  #Select stations that are in arctic domain
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_test = True
+monthly_data_test = False
 select_stations_lat_lon = False
 monthly_statistics = True
 
@@ -326,12 +326,13 @@ for _ , year in enumerate(years):
 
         stations = station_stats.columns
         indexes = ['racmo_mean','in_situ_mean','variance_racmo','variance_in_situ','bias']
-        statistics_stations = pd.DataFrame(index=indexes,columns=stations)
+
 
 
         for month in months:
 
             print('Month ' + str(month))
+            statistics_stations = pd.DataFrame(index=indexes, columns=stations)
 
             monthdir_in_situ = in_situ_data_directory_year_calculated + '/month_' + str(month)
             monthdir_racmo = racmo_arctic_data_directory + year + '/month_' + str(month)
@@ -339,15 +340,19 @@ for _ , year in enumerate(years):
             in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv',index_col=0)
             racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv',index_col=0)
 
-            statistics_stations['racmo_mean'] = racmo[stations].mean()
-            statistics_stations['in_situ_mean'] = in_situ[stations].mean()
+            racmo = racmo.mul(100)
 
-            statistics_stations['variance_racmo'] = racmo[stations].var()
-            statistics_stations['variance_in_situ'] = in_situ[stations].var()
+            statistics_stations.loc['racmo_mean'] = racmo[stations].mean(skipna=True)
+            statistics_stations.loc['in_situ_mean'] = in_situ[stations].mean(skipna=True)
 
-            statistics_stations['bias'] = racmo[stations].subtract(in_situ[stations]).mean()
+            statistics_stations.loc['variance_racmo'] = racmo[stations].var()
+            statistics_stations.loc['variance_in_situ'] = in_situ[stations].var()
+
+            statistics_stations.loc['bias'] = racmo[stations].subtract(in_situ[stations]).mean()
 
             statistics_stations.to_csv(monthdir_in_situ+'/Calculated_statistics.csv')
+
+            del statistics_stations
 
 
 
