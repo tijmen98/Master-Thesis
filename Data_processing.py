@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2001,2002,2003,2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -36,7 +36,8 @@ interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
 select_stations_lat_lon = False
-monthly_statistics = True
+monthly_statistics = False
+fill_nan = True
 
 """File names"""
 
@@ -354,8 +355,42 @@ for _ , year in enumerate(years):
 
             del statistics_stations
 
+    if fill_nan == True:
+
+        print("Filling nans:")
+
+        """In situ data"""
+
+        stationarray = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'stations_dayly_snowheight_' + year + '.csv', index_col=0)
+
+        station_stats = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
+
+        stationarray = stationarray[station_stats.columns]
+
+        plt.plot(stationarray.iloc[155])
+
+        print(stationarray.columns[100:160])
+
+        for col in stationarray.columns:
+            # Fill NaN values between two instances of zero with zeros
+            zero_indices = stationarray[col][stationarray[col] == 0].index
+            for i in range(len(zero_indices) - 1):
+                start_idx = zero_indices[i]
+                start_idx_1 = datetime.datetime.strftime(datetime.datetime.strptime(zero_indices[i], '%Y-%m-%d') + datetime.timedelta(days=1), '%Y-%m-%d')
+                end_idx = zero_indices[i + 1]
+                print(stationarray[col][start_idx_1:end_idx])
+                if start_idx_1 != end_idx:
+                    print('H')
+                    if pd.isna(stationarray[col][start_idx_1:end_idx]).all():
+                        stationarray[col][start_idx_1:end_idx] = 0
 
 
+
+
+
+        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_dayly_snowheight_filled_nan_' + year + '.csv')
 
 
 

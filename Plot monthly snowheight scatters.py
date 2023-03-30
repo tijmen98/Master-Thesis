@@ -28,7 +28,7 @@ scatterplot = True
 
 figrange = 250
 
-stationselect = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv',index_col=0).to_numpy().flatten('F').tolist()
+stationselect = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv',index_col=0)
 
 if scatterplot == True:
     
@@ -46,13 +46,12 @@ if scatterplot == True:
         if yindex >= 4:
             xindex = math.floor(month/4)
             yindex = int(month - math.floor(month/4)*4)
-    
+
         monthdir_in_situ = in_situ_data_directory_year_calculated+'month_'+str(month+1)
         monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month+1)
-    
-    
-        in_situ = pd.read_csv(monthdir_in_situ+'/stationdata.csv',index_col=0).loc[:,stationselect]
-        racmo = pd.read_csv(monthdir_racmo+'/stationdata.csv',index_col=0).loc[:,stationselect]
+
+        in_situ = pd.read_csv(monthdir_in_situ+'/stationdata.csv',index_col=0).loc[:,stationselect.columns]
+        racmo = pd.read_csv(monthdir_racmo+'/stationdata.csv',index_col=0).loc[:,stationselect.columns]
         
         in_situ = np.nan_to_num(in_situ.values,nan=-1)
         racmo = np.nan_to_num(racmo.values*100,nan=-1)
@@ -85,5 +84,5 @@ if scatterplot == True:
         axs[xindex,yindex].annotate(('CC:'+str(np.round(regres.rvalue,3))),xy=(150,30))
     
     
-    plt.savefig(fig_save_directory+'RACMO_monthly_scatter_'+year+'.png',dpi=800)
+    plt.savefig(fig_save_directory+'/'+year+'/RACMO_monthly_scatter_'+year+'.png',dpi=800)
     
