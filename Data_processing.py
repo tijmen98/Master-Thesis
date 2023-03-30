@@ -375,14 +375,12 @@ for _ , year in enumerate(years):
 
         for col in stationarray.columns:
             # Fill NaN values between two instances of zero with zeros
-            zero_indices = stationarray[col][stationarray[col] == 0].index
+            zero_indices = stationarray[col][stationarray[col] != np.nan].index
             for i in range(len(zero_indices) - 1):
                 start_idx = zero_indices[i]
                 start_idx_1 = datetime.datetime.strftime(datetime.datetime.strptime(zero_indices[i], '%Y-%m-%d') + datetime.timedelta(days=1), '%Y-%m-%d')
                 end_idx = zero_indices[i + 1]
-                print(stationarray[col][start_idx_1:end_idx])
                 if start_idx_1 != end_idx:
-                    print('H')
                     if pd.isna(stationarray[col][start_idx_1:end_idx]).all():
                         stationarray[col][start_idx_1:end_idx] = 0
 
