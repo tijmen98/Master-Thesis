@@ -9,7 +9,6 @@ Created on Thu Mar 16 15:02:34 2023
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import datetime
 import xarray as xr
 import statistics
