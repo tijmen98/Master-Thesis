@@ -21,8 +21,8 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
-months = [1,2,3,4,5,6,7,8,9,10,11,12]
+years = [2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
