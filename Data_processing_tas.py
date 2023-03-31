@@ -29,13 +29,13 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 """Calculation control"""
 
-select_stations = True                  #Select stations that are in arctic domain
-calc_stationdata = True                #Extract station snowdepth data and save to csv per station
+select_stations = False                  #Select stations that are in arctic domain
+calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = True
 select_stations_lat_lon = False
-monthly_statistics = True
+monthly_statistics = False
 fill_nan = False
 
 """File names"""
@@ -171,7 +171,7 @@ for _ , year in enumerate(years):
                 
                 except: stationarray.loc[station_snow_depth['date_time'].iloc[i2],v] = v2
         
-        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_2m_temperature_'+year+'.csv')
 
     """Interpolate and select data with a bigger gap then days_missing_limit"""
     
@@ -290,10 +290,10 @@ for _ , year in enumerate(years):
 
             """Check for directory to exist"""
             
-            monthdir_in_situ = in_situ_data_directory_year_calculated+'/month_'+str(month)
+            monthdir_in_situ = in_situ_data_directory_year_calculated+'/tas/month_'+str(month)
             os.makedirs(monthdir_in_situ,exist_ok=True)
         
-            monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month)
+            monthdir_racmo = racmo_arctic_data_directory+year+'/tas/month_'+str(month)
             os.makedirs(monthdir_racmo,exist_ok=True)
             
             """Get racmo snowheight for same locations"""
