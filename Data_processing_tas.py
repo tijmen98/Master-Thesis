@@ -35,7 +35,7 @@ interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = True
 select_stations_lat_lon = False
-monthly_statistics = False
+monthly_statistics = True
 fill_nan = False
 
 """File names"""
@@ -251,7 +251,7 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv', index_col=0)
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_2m_temperature_'+year+'.csv', index_col=0)
         racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time=slice(year +'-01-01',year+'-12-31'))['tas']
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
         
@@ -350,7 +350,7 @@ for _ , year in enumerate(years):
 
             statistics_stations.loc['bias'] = racmo[stations].subtract(in_situ[stations]).mean()
 
-            statistics_stations.to_csv(monthdir_in_situ+'/Calculated_statistics.csv')
+            statistics_stations.to_csv(monthdir_in_situ+'/Calculated_statistics_tas.csv')
 
             del statistics_stations
 
