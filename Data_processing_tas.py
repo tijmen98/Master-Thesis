@@ -14,7 +14,7 @@ import datetime
 import xarray as xr
 import statistics
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+os.chdir('H:\Documenten\Master\Master_thesis\Python_scripts')
 
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
@@ -46,7 +46,7 @@ racmo_snowdepth = '/NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_n
 
 """Directories"""
 
-datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
 racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
