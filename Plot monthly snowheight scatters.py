@@ -13,7 +13,7 @@ import matplotlib as mpl
 import math
 import scipy
 
-year = str(2004)
+year = str(2002)
 
 
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
