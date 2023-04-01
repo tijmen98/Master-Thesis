@@ -172,7 +172,7 @@ for _ , year in enumerate(years):
                 
                 except: stationarray.loc[station_snow_depth['date_time'].iloc[i2],v] = v2
         
-        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv')
 
     """Interpolate and select data with a bigger gap then days_missing_limit"""
     
@@ -180,7 +180,7 @@ for _ , year in enumerate(years):
         
         print('Interpolating stationdata')
        
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv',index_col=0)
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv',index_col=0)
         stations = np.array(stationarray.columns)
         
         for i,v in enumerate(stations):
@@ -190,7 +190,7 @@ for _ , year in enumerate(years):
             if stationarray[v].isna().sum() != 0:
                 stationarray.drop(columns=[v],inplace=True)
     
-        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_interpolated_'+year+'.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_interpolated_'+year+'.csv')
 
     """Station specific data to csv"""
     
@@ -200,7 +200,7 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv',index_col=0) 
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv',index_col=0) 
         racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time = slice(year+'-01-01',year+'-12-31'))['sndp']
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv',index_col=0)
         
@@ -252,7 +252,7 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_dayly_snowheight_'+year+'.csv', index_col=0)
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv', index_col=0)
         racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time=slice(year +'-01-01',year+'-12-31'))['sndp']
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
         
@@ -362,33 +362,21 @@ for _ , year in enumerate(years):
         """In situ data"""
 
         stationarray = pd.read_csv(
-            in_situ_data_directory_year_calculated + 'stations_dayly_snowheight_' + year + '.csv', index_col=0)
+            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_' + year + '.csv', index_col=0)
 
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
-        stationarray = stationarray[station_stats.columns]
+        startdate = yea
+        enddate =
 
-        plt.plot(stationarray.iloc[155])
-
-        print(stationarray.columns[100:160])
-
-        for col in stationarray.columns:
-            # Fill NaN values between two instances of zero with zeros
-            zero_indices = stationarray[col][stationarray[col] != np.nan].index
-            for i in range(len(zero_indices) - 1):
-                start_idx = zero_indices[i]
-                start_idx_1 = datetime.datetime.strftime(datetime.datetime.strptime(zero_indices[i], '%Y-%m-%d') + datetime.timedelta(days=1), '%Y-%m-%d')
-                end_idx = zero_indices[i + 1]
-                if start_idx_1 != end_idx:
-                    if pd.isna(stationarray[col][start_idx_1:end_idx]).all():
-                        stationarray[col][start_idx_1:end_idx] = 0
+        stationarray.loc[start_date:end_date]
 
 
 
 
 
-        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_dayly_snowheight_filled_nan_' + year + '.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_filled_nan_' + year + '.csv')
 
 
 
