@@ -46,7 +46,7 @@ combine_snow_extend = False
 racmo_snowdepth = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
 
 
-filename='Measure_multiple_merged.nc' #Filename for combined measure dataset
+filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 """Directories"""
 
@@ -91,7 +91,6 @@ for _ , year in enumerate(years):
         for i, v in enumerate(in_situ_data_directory_yearlist):
             try:
                 in_situ_data_directory_yearlist[i].split('.')[1] == 'csv'
-
             except:
                 None
             else:
@@ -250,7 +249,9 @@ for _ , year in enumerate(years):
        
             month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
             locdata.to_csv(monthdir_racmo+'/stationdata.csv')
-            
+
+    """Faster way to get monthly files from racmo per station"""
+
     if monthly_data_test:
         
         print("Test: saving racmo and in-situ data as monthly files, month:")
@@ -307,6 +308,7 @@ for _ , year in enumerate(years):
             month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
             month_racmo_per_station.to_csv(monthdir_racmo+'/stationdata.csv')
 
+    """Select stations in a certain latitude-longitude box"""
     if select_stations_lat_lon == True:
 
         # Load the table containing the latitude and longitude information
@@ -323,6 +325,8 @@ for _ , year in enumerate(years):
         filtered_station_stats = station_stats[(station_stats['latitude'] >= min_lat) & (station_stats['latitude'] <= max_lat) & (station_stats['longitude'] >= min_lon) & (station_stats['longitude'] <= max_lon)]
         
         filtered_station_stats.to_csv(in_situ_data_directory_year_calculated+'stations_in_latlonrange_'+year+'.csv')
+
+    """Calcuklate statistics for each monthly file"""
 
     if monthly_statistics:
 
@@ -360,6 +364,8 @@ for _ , year in enumerate(years):
 
             del statistics_stations
 
+    """Fill nan's in in situ snowheight data in summer"""
+
     if fill_nan:
 
         print("Filling nans:")
@@ -379,9 +385,9 @@ for _ , year in enumerate(years):
 
         stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_filled_nan_' + year + '.csv')
 
+    """Get snowextend from racmo data [Boolian]"""
+
     if racmo_snowextend:
-        t_start = year + '-01-01'
-        t_stop = year + '-12-30'
 
         tilefrac5 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac5').sel(time=slice(t_start, t_stop))
         tilefrac7 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac7').sel(time=slice(t_start, t_stop))
@@ -390,6 +396,8 @@ for _ , year in enumerate(years):
         tilefrac_57 = tilefrac_57.rename('Snowextend Racmo')
 
         tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_Snowextend_' + t_start + '_RP_grid.nc')
+
+    """Combine snowextend daily files to yearly files"""
 
     if combine_snow_extend:
 
@@ -423,9 +431,12 @@ for _ , year in enumerate(years):
             'modis_cloud_gap_filled_snow_cover_extent'].where(
             datamerge['modis_cloud_gap_filled_snow_cover_extent'] == 1, 0)
 
-        datamerge['merged_snow_cover_extent'].isel(time=900).plot()
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
 
-        datamerge.to_netcdf(snow_cover_extend_measure_dir + filename)
+        datamerge = datamerge.sel(time=slice(t_start, t_stop))
+
+        datamerge.to_netcdf(snow_cover_extend_measure_dir + year + filename)
 
 
 print('All years done')
