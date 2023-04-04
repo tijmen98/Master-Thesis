@@ -25,28 +25,40 @@ from matplotlib import gridspec
 from matplotlib.lines import Line2D
 import pyproj
 
+years = [2003, 2004]
+
+
 os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
 
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as datafunc
 import Thesis_Functions.plotting as plotting
 
-directory = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Snow_cover/Measure_2001/'
+"""Directories"""
 
+datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
-files = os.listdir(directory)
+snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
+download_measure_dir = 'Download_3-4/'
 
-files = np.sort(files)[2::]
+filename='Measure_multiple_merged.nc'
 
-datas = []
+directories = os.listdir(snow_cover_extend_measure_dir+download_measure_dir)
 
-for file in files:
-    datas.append(xr.open_dataset(directory+file))
-    
+directories = sorted((f for f in directories if not f.startswith(".")), key=str.lower)
+
+data = []
+
+for directory in directories:
+    files = os.listdir(snow_cover_extend_measure_dir + download_measure_dir + directory)
+    file = sorted(file for file in files if not file.startswith(".") and file.endswith(".nc"))
+
+    data.append(xr.open_dataset(snow_cover_extend_measure_dir + download_measure_dir + directory +'/' + file[0]))
+
 
 'merge days to one file'
 
-datamerge = xr.concat(datas,'time')
+datamerge = xr.concat(data,'time')
 
 'change bytes data to snow [1] or no snow [0]'
 
@@ -57,12 +69,7 @@ datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge['modis_cloud_g
 datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge['modis_cloud_gap_filled_snow_cover_extent'].where(datamerge['modis_cloud_gap_filled_snow_cover_extent']==1,0)
 
 
-datamerge['merged_snow_cover_extent'].isel(time=0).plot()
+datamerge['merged_snow_cover_extent'].isel(time=900).plot()
 
-filename='Measure_2001_merged.nc'
-
-datamerge.to_netcdf(directory+filename, mode = 'w')
-
+datamerge.to_netcdf(snow_cover_extend_measure_dir+filename)
 #%%
-
-pyproj.transformer.Tranformer()
