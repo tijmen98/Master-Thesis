@@ -14,7 +14,7 @@ import datetime
 import xarray as xr
 import statistics
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+os.chdir('/')
 
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
@@ -38,11 +38,15 @@ monthly_data_test = False
 select_stations_lat_lon = False
 monthly_statistics = False
 fill_nan = True
+racmo_snowextend =True
+combine_snow_extend = False
 
 """File names"""
 
 racmo_snowdepth = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
 
+
+filename='Measure_multiple_merged.nc' #Filename for combined measure dataset
 
 """Directories"""
 
@@ -52,8 +56,9 @@ in_situ_data_directory = datadir+'In_situ_data/'
 racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
 snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
 mask_directory = datadir+'Mask/'
+remapdir = datadir+'Remap/'
 
-
+download_measure_dir = 'Download_3-4/'
 
 """Start of yearly calculations:"""
 
@@ -355,7 +360,7 @@ for _ , year in enumerate(years):
 
             del statistics_stations
 
-    if fill_nan == True:
+    if fill_nan:
 
         print("Filling nans:")
 
@@ -367,22 +372,60 @@ for _ , year in enumerate(years):
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
-        startdate = yea
-        enddate =
+        startdate = year + '-08-01'
+        enddate = year + '-08-01'
 
-        stationarray.loc[start_date:end_date]
-
-
-
-
+        stationarray.loc[start_date:end_date].fillna(0)
 
         stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_filled_nan_' + year + '.csv')
 
+    if racmo_snowextend:
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
 
+        tilefrac5 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac5').sel(time=slice(t_start, t_stop))
+        tilefrac7 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac7').sel(time=slice(t_start, t_stop))
 
+        tilefrac_57 = (tilefrac5 + tilefrac7)
+        tilefrac_57 = tilefrac_57.rename('Snowextend Racmo')
 
+        tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_Snowextend_' + t_start + '_RP_grid.nc')
 
+    if combine_snow_extend:
 
+        directories = os.listdir(snow_cover_extend_measure_dir + download_measure_dir)
+        directories = sorted((f for f in directories if not f.startswith(".")), key=str.lower)
+
+        data = []
+
+        for directory in directories:
+            files = os.listdir(snow_cover_extend_measure_dir + download_measure_dir + directory)
+            file = sorted(file for file in files if not file.startswith(".") and file.endswith(".nc"))
+
+            data.append(
+                xr.open_dataset(snow_cover_extend_measure_dir + download_measure_dir + directory + '/' + file[0]))
+
+        'merge days to one file'
+
+        datamerge = xr.concat(data, 'time')
+
+        'change bytes data to snow [1] or no snow [0]'
+
+        datamerge['merged_snow_cover_extent'] = datamerge['merged_snow_cover_extent'].where(
+            datamerge['merged_snow_cover_extent'] < 14, np.nan) * 0 + 1
+        datamerge['merged_snow_cover_extent'] = datamerge['merged_snow_cover_extent'].where(
+            datamerge['merged_snow_cover_extent'] == 1, 0)
+
+        datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge[
+                                                                    'modis_cloud_gap_filled_snow_cover_extent'].where(
+            datamerge['modis_cloud_gap_filled_snow_cover_extent'] == 10, np.nan) * 0 + 1
+        datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge[
+            'modis_cloud_gap_filled_snow_cover_extent'].where(
+            datamerge['modis_cloud_gap_filled_snow_cover_extent'] == 1, 0)
+
+        datamerge['merged_snow_cover_extent'].isel(time=900).plot()
+
+        datamerge.to_netcdf(snow_cover_extend_measure_dir + filename)
 
 
 print('All years done')

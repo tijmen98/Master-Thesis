@@ -28,7 +28,7 @@ import pyproj
 years = [2003, 2004]
 
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+os.chdir('/')
 
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as datafunc
@@ -44,7 +44,6 @@ download_measure_dir = 'Download_3-4/'
 filename='Measure_multiple_merged.nc'
 
 directories = os.listdir(snow_cover_extend_measure_dir+download_measure_dir)
-
 directories = sorted((f for f in directories if not f.startswith(".")), key=str.lower)
 
 data = []
@@ -55,10 +54,9 @@ for directory in directories:
 
     data.append(xr.open_dataset(snow_cover_extend_measure_dir + download_measure_dir + directory +'/' + file[0]))
 
-
 'merge days to one file'
 
-datamerge = xr.concat(data,'time')
+datamerge = xr.concat(data, 'time')
 
 'change bytes data to snow [1] or no snow [0]'
 
@@ -67,7 +65,6 @@ datamerge['merged_snow_cover_extent'] = datamerge['merged_snow_cover_extent'].wh
 
 datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge['modis_cloud_gap_filled_snow_cover_extent'].where(datamerge['modis_cloud_gap_filled_snow_cover_extent']==10,np.nan) * 0 +1
 datamerge['modis_cloud_gap_filled_snow_cover_extent'] = datamerge['modis_cloud_gap_filled_snow_cover_extent'].where(datamerge['modis_cloud_gap_filled_snow_cover_extent']==1,0)
-
 
 datamerge['merged_snow_cover_extent'].isel(time=900).plot()
 
