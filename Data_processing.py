@@ -9,7 +9,6 @@ Created on Thu Mar 16 15:02:34 2023
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import datetime
 import xarray as xr
 import statistics
@@ -19,10 +18,13 @@ os.chdir('/')
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
 
+Desktop = True
+Laptop = False
+
 
 """Variables"""
 
-years = [2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002,2003,2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -37,9 +39,9 @@ monthly_data = False                    #Extract montly data and save to directo
 monthly_data_test = False
 select_stations_lat_lon = False
 monthly_statistics = False
-fill_nan = True
-racmo_snowextend =True
-combine_snow_extend = False
+fill_nan = False
+racmo_snowextend = False
+combine_snow_extend_measure = True
 
 """File names"""
 
@@ -50,7 +52,11 @@ filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 """Directories"""
 
-datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+if Desktop:
+    datadir = "E:/Master-Thesis/Data/"
+
+if Laptop:
+    datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
 racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
@@ -389,29 +395,49 @@ for _ , year in enumerate(years):
 
     if racmo_snowextend:
 
-        tilefrac5 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac5').sel(time=slice(t_start, t_stop))
-        tilefrac7 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac7').sel(time=slice(t_start, t_stop))
+        print('extracting snowextend from racmo files')
+
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
+
+        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory+'NC_DEFAULT/tilefrac5.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['tilefrac5'].sel(time=slice(t_start, t_stop))
+        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory+'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['tilefrac7'].sel(time=slice(t_start, t_stop))
 
         tilefrac_57 = (tilefrac5 + tilefrac7)
         tilefrac_57 = tilefrac_57.rename('Snowextend Racmo')
 
-        tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_Snowextend_' + t_start + '_RP_grid.nc')
+        tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_Snowextend_' + year + '_RP_grid.nc')
 
     """Combine snowextend daily files to yearly files"""
 
-    if combine_snow_extend:
+    if combine_snow_extend_measure:
+
+        print('Combining measure snow extend files')
 
         directories = os.listdir(snow_cover_extend_measure_dir + download_measure_dir)
         directories = sorted((f for f in directories if not f.startswith(".")), key=str.lower)
 
         data = []
+        import_file = []
 
         for directory in directories:
             files = os.listdir(snow_cover_extend_measure_dir + download_measure_dir + directory)
-            file = sorted(file for file in files if not file.startswith(".") and file.endswith(".nc"))
+            import_file.append(sorted(file for file in files if not file.startswith(".") and file.endswith(".nc")))
 
+        import_file = [num for sublist in import_file for num in sublist]
+
+        def extract_date(file_name):
+            return(file_name.split("_")[1])
+
+        sorted_indices = sorted(range(len(import_file)),key = lambda i: extract_date(import_file[i]))
+
+        import_file = sorted(import_file, key=extract_date)
+
+        directories = [directories[i] for i in sorted_indices]
+
+        for index, file in enumerate(import_file):
             data.append(
-                xr.open_dataset(snow_cover_extend_measure_dir + download_measure_dir + directory + '/' + file[0]))
+                xr.open_dataset(snow_cover_extend_measure_dir + download_measure_dir + '/'+directories[index] + '/' + file))
 
         'merge days to one file'
 
@@ -435,6 +461,8 @@ for _ , year in enumerate(years):
         t_stop = year + '-12-30'
 
         datamerge = datamerge.sel(time=slice(t_start, t_stop))
+
+        os.makedirs(snow_cover_extend_measure_dir + year, exist_ok=True)
 
         datamerge.to_netcdf(snow_cover_extend_measure_dir + year + filename)
 
