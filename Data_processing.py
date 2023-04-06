@@ -321,7 +321,7 @@ for _ , year in enumerate(years):
         # Load the table containing the latitude and longitude information
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv', index_col=0)
 
-        polygon = Polygon([(31.0, 55.0), (31.0, 75.0), (180.0, 75.0), (190.0, 66.0), (180.0, 55.0)])
+        polygon = Polygon([(230.0, 65.0), (230.0, 85.0), (300.0, 85.0), (280.0, 75.0), (300.0, 65.0)])
 
         fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': ccrs.Stereographic(central_longitude=0.,
                                                                                             central_latitude=90.)})
@@ -336,8 +336,10 @@ for _ , year in enumerate(years):
         data_within_polygon = station_stats
 
         for index, station in enumerate(station_stats.columns):
-            point = Point(float(station_stats.loc['latitude', station]), float(station_stats.loc['longitude', station]))
-            plt.scatter(float(station_stats.loc['rlat', station]),float(station_stats.loc['rlon', station]), transform = ccrs.PlateCarree())
+
+            point = Point(float(station_stats.loc['longitude', station]),
+                          float(station_stats.loc['latitude', station]))
+
             if polygon.contains(point):
                 None
             else:
