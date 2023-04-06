@@ -22,7 +22,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -37,9 +37,10 @@ monthly_data = False                    #Extract montly data and save to directo
 monthly_data_test = False
 select_stations_lat_lon = False
 monthly_statistics = False
-fill_nan = True
-racmo_snowextend =True
+fill_nan = False
+racmo_snowextend = False
 combine_snow_extend = False
+snow_extend_statistics = True
 
 """File names"""
 
@@ -57,7 +58,7 @@ racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
 snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
 mask_directory = datadir+'Mask/'
 remapdir = datadir+'Remap/'
-
+snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 
 """Start of yearly calculations:"""
@@ -437,6 +438,25 @@ for _ , year in enumerate(years):
         datamerge = datamerge.sel(time=slice(t_start, t_stop))
 
         datamerge.to_netcdf(snow_cover_extend_measure_dir + year + filename)
+
+    if snow_extend_statistics:
+
+        print('Calculating snow_extend statistics')
+
+        snow_cover_measure = xr.open_dataset(snow_cover_analysis_dir + year + '/Measure.nc')['merged_snow_cover_extent']
+        snow_cover_racmo = xr.open_dataset(snow_cover_analysis_dir + year + '/RACMO.nc')['Snowextend Racmo']
+
+        snow_cover_measure_melt = snow_cover_measure.sel(time=slice(year+'-01-01', year+breakdate)).sum(dim='time')
+        snow_cover_racmo_melt = snow_cover_racmo.sel(time=slice(year+'-01-01', year+breakdate)).sum(dim='time')
+
+        snow_cover_measure_acc = snow_cover_measure.sel(time=slice(year+breakdate, year+'-12-31',)).sum(dim='time')
+        snow_cover_racmo_acc = snow_cover_racmo.sel(time=slice(year+breakdate, year+'-12-31',)).sum(dim='time')
+
+        snow_cover_measure_melt.to_netcdf(snow_cover_analysis_dir + year + '/measure_melt_season.nc')
+        snow_cover_racmo_melt.to_netcdf(snow_cover_analysis_dir + year + '/racmo_melt_season.nc')
+
+        snow_cover_measure_acc.to_netcdf(snow_cover_analysis_dir + year + '/measure_acc_season.nc')
+        snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_acc_season.nc')
 
 
 print('All years done')
