@@ -13,6 +13,11 @@ import matplotlib.pyplot as plt
 import datetime
 import xarray as xr
 import statistics
+from shapely.geometry import Polygon, Point
+
+import geopandas as gpd
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 os.chdir('/')
 
@@ -35,12 +40,12 @@ calc_stationdata = False                #Extract station snowdepth data and save
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
-select_stations_lat_lon = False
+select_stations_lat_lon = True
 monthly_statistics = False
 fill_nan = False
 racmo_snowextend = False
 combine_snow_extend = False
-snow_extend_statistics = True
+snow_extend_statistics = False
 
 """File names"""
 
@@ -312,20 +317,37 @@ for _ , year in enumerate(years):
     """Select stations in a certain latitude-longitude box"""
     if select_stations_lat_lon == True:
 
+        print('Selecting stations in polygon')
         # Load the table containing the latitude and longitude information
-        station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv',index_col=0)
+        station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv', index_col=0)
 
-        
-        # Define the bounding box using the minimum and maximum latitude and longitude values
-        min_lat = 40.7128
-        max_lat = 42.3601
-        min_lon = -74.1687
-        max_lon = -71.0568
-        
+        polygon = Polygon([(31.0, 55.0), (31.0, 75.0), (180.0, 75.0), (190.0, 66.0), (180.0, 55.0)])
+
+        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': ccrs.Stereographic(central_longitude=0.,
+                                                                                            central_latitude=90.)})
+        ax.add_feature(cfeature.LAND)
+        ax.add_feature(cfeature.COASTLINE)
+        ax.add_feature(cfeature.BORDERS)
+        gpd.GeoDataFrame(geometry=[polygon]).plot(ax=ax, transform=ccrs.PlateCarree(), color='red')
+
+
+        # Show the plot
+
+        data_within_polygon = station_stats
+
+        for index, station in enumerate(station_stats.columns):
+            point = Point(float(station_stats.loc['latitude', station]), float(station_stats.loc['longitude', station]))
+            plt.scatter(float(station_stats.loc['rlat', station]),float(station_stats.loc['rlon', station]), transform = ccrs.PlateCarree())
+            if polygon.contains(point):
+                None
+            else:
+                data_within_polygon.drop(columns=station, inplace=True)
+
+        print(len(data_within_polygon))
+
         # Extract the locations within the bounding box
-        filtered_station_stats = station_stats[(station_stats['latitude'] >= min_lat) & (station_stats['latitude'] <= max_lat) & (station_stats['longitude'] >= min_lon) & (station_stats['longitude'] <= max_lon)]
-        
-        filtered_station_stats.to_csv(in_situ_data_directory_year_calculated+'stations_in_latlonrange_'+year+'.csv')
+
+        data_within_polygon.to_csv(in_situ_data_directory_year_calculated+'stations_in_Norway_'+year+'.csv')
 
     """Calcuklate statistics for each monthly file"""
 
