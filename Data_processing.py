@@ -27,7 +27,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -339,7 +339,7 @@ for _ , year in enumerate(years):
 
             point = Point(float(station_stats.loc['longitude', station]),
                           float(station_stats.loc['latitude', station]))
-
+            plt.scatter(float(station_stats.loc['longitude', station]),float(station_stats.loc['latitude', station]), transform=ccrs.PlateCarree())
             if polygon.contains(point):
                 None
             else:
