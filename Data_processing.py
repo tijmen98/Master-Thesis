@@ -93,7 +93,7 @@ for _ , year in enumerate(years):
 
     """If directory does not yet exists, make directories"""
     
-    os.makedirs(in_situ_data_directory_year_calculated,exist_ok=True)
+    os.makedirs(in_situ_data_directory_year_calculated, exist_ok=True)
 
     """Select stations that are in arctic domain"""
 
@@ -364,8 +364,6 @@ for _ , year in enumerate(years):
         stations_europe_flat.to_csv(in_situ_data_directory_year_calculated+'stations_in_flat_europe_'+year+'.csv')
         stations_alaska.to_csv(in_situ_data_directory_year_calculated+'stations_in_alaska_'+year+'.csv')
         stations_canada.to_csv(in_situ_data_directory_year_calculated+'stations_in_canada_'+year+'.csv')
-
-        data_within_polygon.to_csv(in_situ_data_directory_year_calculated+'stations_in_Norway_'+year+'.csv')
 
     """Calcuklate statistics for each monthly file"""
 
