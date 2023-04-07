@@ -66,6 +66,18 @@ remapdir = datadir+'Remap/'
 snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 
+"""Bounding boxes for location extraction"""
+
+polygon_norway = Polygon([(4.0, 55.0), (4.0, 65.0), (31.0, 75.0), (31.0, 70.0), (17.0, 66.0), (12.0, 58.0)])
+
+polygon_flat_europe = Polygon([(4.0, 55.0), (12.0, 58.0), (17.0, 66.0), (31.0, 70.0), (31.0, 55.0)])
+
+polygon_syberia = Polygon([(31.0, 55.0), (31.0, 75.0), (180.0, 75.0), (190.0, 66.0), (180.0, 55.0)])
+
+polygon_alaska = Polygon([(190.0, 55.0), (190.0, 65.0), (200.0, 75.0), (220.0, 75.0), (220.0, 55.0)])
+
+polygon_canada = Polygon([(230.0, 65.0), (230.0, 85.0), (300.0, 85.0), (280.0, 75.0), (300.0, 65.0)])
+
 """Start of yearly calculations:"""
 
 for _ , year in enumerate(years):
@@ -321,33 +333,37 @@ for _ , year in enumerate(years):
         # Load the table containing the latitude and longitude information
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv', index_col=0)
 
-        polygon = Polygon([(230.0, 65.0), (230.0, 85.0), (300.0, 85.0), (280.0, 75.0), (300.0, 65.0)])
-
-        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': ccrs.Stereographic(central_longitude=0.,
-                                                                                            central_latitude=90.)})
-        ax.add_feature(cfeature.LAND)
-        ax.add_feature(cfeature.COASTLINE)
-        ax.add_feature(cfeature.BORDERS)
-        gpd.GeoDataFrame(geometry=[polygon]).plot(ax=ax, transform=ccrs.PlateCarree(), color='red')
-
 
         # Show the plot
 
-        data_within_polygon = station_stats
+        stations_norway = station_stats.copy()
+        stations_syberia = station_stats.copy()
+        stations_europe_flat = station_stats.copy()
+        stations_alaska = station_stats.copy()
+        stations_canada = station_stats.copy()
 
         for index, station in enumerate(station_stats.columns):
 
             point = Point(float(station_stats.loc['longitude', station]),
                           float(station_stats.loc['latitude', station]))
-            plt.scatter(float(station_stats.loc['longitude', station]),float(station_stats.loc['latitude', station]), transform=ccrs.PlateCarree())
-            if polygon.contains(point):
-                None
-            else:
-                data_within_polygon.drop(columns=station, inplace=True)
-
-        print(len(data_within_polygon))
+            if not polygon_norway.contains(point):
+                stations_norway.drop(columns=station, inplace=True)
+            if not polygon_canada.contains(point):
+                stations_canada.drop(columns=station, inplace=True)
+            if not polygon_flat_europe.contains(point):
+                stations_europe_flat.drop(columns=station, inplace=True)
+            if not polygon_alaska.contains(point):
+                stations_alaska.drop(columns=station, inplace=True)
+            if not polygon_syberia.contains(point):
+                stations_syberia.drop(columns=station, inplace=True)
 
         # Extract the locations within the bounding box
+
+        stations_norway.to_csv(in_situ_data_directory_year_calculated+'stations_in_norway_'+year+'.csv')
+        stations_syberia.to_csv(in_situ_data_directory_year_calculated+'stations_in_syberia_'+year+'.csv')
+        stations_europe_flat.to_csv(in_situ_data_directory_year_calculated+'stations_in_flat_europe_'+year+'.csv')
+        stations_alaska.to_csv(in_situ_data_directory_year_calculated+'stations_in_alaska_'+year+'.csv')
+        stations_canada.to_csv(in_situ_data_directory_year_calculated+'stations_in_canada_'+year+'.csv')
 
         data_within_polygon.to_csv(in_situ_data_directory_year_calculated+'stations_in_Norway_'+year+'.csv')
 
