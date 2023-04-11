@@ -333,6 +333,12 @@ for _ , year in enumerate(years):
         # Load the table containing the latitude and longitude information
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv', index_col=0)
 
+        station_arctic_domain = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv',
+            index_col=0)
+
+        station_stats = station_stats[station_arctic_domain.columns.values]
+
         """Norway"""
 
         points = gpd.GeoDataFrame(
