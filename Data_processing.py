@@ -27,7 +27,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -40,7 +40,7 @@ calc_stationdata = False                #Extract station snowdepth data and save
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
-select_stations_lat_lon = True
+select_stations_area = True
 monthly_statistics = False
 fill_nan = False
 racmo_snowextend = False
@@ -74,9 +74,9 @@ polygon_flat_europe = Polygon([(4.0, 55.0), (12.0, 58.0), (17.0, 66.0), (31.0, 7
 
 polygon_syberia = Polygon([(31.0, 55.0), (31.0, 75.0), (180.0, 75.0), (190.0, 66.0), (180.0, 55.0)])
 
-polygon_alaska = Polygon([(190.0, 55.0), (190.0, 65.0), (200.0, 75.0), (220.0, 75.0), (220.0, 55.0)])
+polygon_alaska = Polygon([(-170.0, 55.0), (-170.0, 65.0), (-160.0, 75.0), (-160.0, 75.0), (-140.0, 55.0)])
 
-polygon_canada = Polygon([(230.0, 65.0), (230.0, 85.0), (300.0, 85.0), (280.0, 75.0), (300.0, 65.0)])
+polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0, 75.0), (-60.0, 65.0)])
 
 """Start of yearly calculations:"""
 
@@ -327,45 +327,52 @@ for _ , year in enumerate(years):
             month_racmo_per_station.to_csv(monthdir_racmo+'/stationdata.csv')
 
     """Select stations in a certain latitude-longitude box"""
-    if select_stations_lat_lon == True:
+    if select_stations_area:
 
         print('Selecting stations in polygon')
         # Load the table containing the latitude and longitude information
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv', index_col=0)
 
+        """Norway"""
 
-        # Show the plot
+        points = gpd.GeoDataFrame(
+            geometry=gpd.points_from_xy(station_stats.loc['longitude'], station_stats.loc['latitude']))
+        norway_points = points.within(polygon_norway)
+        stations = station_stats.columns
+        station_stats[stations[norway_points]].to_csv(
+            in_situ_data_directory_year_calculated + 'stations_in_norway_' + year + '.csv')
 
-        stations_norway = station_stats.copy()
-        stations_syberia = station_stats.copy()
-        stations_europe_flat = station_stats.copy()
-        stations_alaska = station_stats.copy()
-        stations_canada = station_stats.copy()
+        """Syberia"""
 
-        for index, station in enumerate(station_stats.columns):
+        syberia_points = points.within(polygon_syberia)
+        stations = station_stats.columns
+        station_stats[stations[syberia_points]].to_csv(
+            in_situ_data_directory_year_calculated + 'stations_in_syberia_' + year + '.csv')
 
-            point = Point(float(station_stats.loc['longitude', station]),
-                          float(station_stats.loc['latitude', station]))
-            if not polygon_norway.contains(point):
-                stations_norway.drop(columns=station, inplace=True)
-            if not polygon_canada.contains(point):
-                stations_canada.drop(columns=station, inplace=True)
-            if not polygon_flat_europe.contains(point):
-                stations_europe_flat.drop(columns=station, inplace=True)
-            if not polygon_alaska.contains(point):
-                stations_alaska.drop(columns=station, inplace=True)
-            if not polygon_syberia.contains(point):
-                stations_syberia.drop(columns=station, inplace=True)
+        """flat_europe"""
 
-        # Extract the locations within the bounding box
+        flat_europe_points = points.within(polygon_flat_europe)
+        stations = station_stats.columns
+        station_stats[stations[flat_europe_points]].to_csv(
+            in_situ_data_directory_year_calculated + 'stations_in_flat_europe_' + year + '.csv')
 
-        stations_norway.to_csv(in_situ_data_directory_year_calculated+'stations_in_norway_'+year+'.csv')
-        stations_syberia.to_csv(in_situ_data_directory_year_calculated+'stations_in_syberia_'+year+'.csv')
-        stations_europe_flat.to_csv(in_situ_data_directory_year_calculated+'stations_in_flat_europe_'+year+'.csv')
-        stations_alaska.to_csv(in_situ_data_directory_year_calculated+'stations_in_alaska_'+year+'.csv')
-        stations_canada.to_csv(in_situ_data_directory_year_calculated+'stations_in_canada_'+year+'.csv')
+        """alaska"""
 
-    """Calcuklate statistics for each monthly file"""
+        alaska_points = points.within(polygon_alaska)
+        stations = station_stats.columns
+        station_stats[stations[alaska_points]].to_csv(
+            in_situ_data_directory_year_calculated + 'stations_in_alaska_' + year + '.csv')
+
+        """canada"""
+
+
+        canada_points = points.within(polygon_canada)
+        stations = station_stats.columns
+        station_stats[stations[canada_points]].to_csv(
+            in_situ_data_directory_year_calculated + 'stations_in_canada_' + year + '.csv')
+
+
+    """Calculate statistics for each monthly file"""
 
     if monthly_statistics:
 
