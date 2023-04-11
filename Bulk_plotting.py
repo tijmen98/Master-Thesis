@@ -25,8 +25,12 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', '
 
 """plotting control"""
 
-arctic_domain_scatter = False
+arctic_domain_scatter = True
 norway_scatter = True
+alaska_scatter = True
+canada_scatter = True
+syberia_scatter = True
+flat_europe_scatter = True
 
 """File names"""
 
@@ -61,6 +65,72 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 """Start of yearly calculations:"""
 
+
+def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
+
+    figrange = 250
+
+    """plot scatter heatmap day of year"""
+
+    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
+
+    for month in range(12):
+
+        xindex = 0
+        yindex = month
+
+        if yindex >= 4:
+            xindex = math.floor(month / 4)
+            yindex = int(month - math.floor(month / 4) * 4)
+
+        monthdir_in_situ = in_situ_directory + 'month_' + str(month + 1)
+        monthdir_racmo = racmo_directory + year + '/month_' + str(month + 1)
+
+        in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[stations]
+        racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[stations]
+
+        in_situ = np.nan_to_num(in_situ.values, nan=-1)
+        racmo = np.nan_to_num(racmo.values * 100, nan=-1)
+
+        in_situ = in_situ.flatten('F')
+        racmo = racmo.flatten('F')
+
+        RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
+        try:
+            regres = scipy.stats.linregress(racmo, in_situ)
+        except:
+            regres = np.nan
+        # number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
+
+        hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
+        xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
+        yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1] - 1)
+        c = hist[xidx, yidx]
+
+        axs[xindex, yindex].scatter(in_situ, racmo, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
+        axs[xindex, yindex].set_title(month_names[month])
+        axs[xindex, yindex].set_xlabel('In_situ')
+        axs[xindex, yindex].set_ylabel('Racmo')
+        axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
+                                 alpha=0.5)
+        axs[xindex, yindex].set_xlim(0, figrange)
+        axs[xindex, yindex].set_ylim(0, figrange)
+        axs[xindex, yindex].set_aspect(1)
+        axs[xindex, yindex].set_xticks(np.arange(0, figrange, figrange / 5))
+        axs[xindex, yindex].set_yticks(np.arange(0, figrange, figrange / 5))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(150, 50))
+        try:
+            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(150, 40))
+        except:
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(150, 40))
+        try:
+            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
+        except:
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(150, 30))
+
+    plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
+
+
 for _, year in enumerate(years):
     year = str(year)
     print('Generating plots for: ' + year)
@@ -87,167 +157,40 @@ for _, year in enumerate(years):
 
     """Arctic domain scatter"""
 
+
     if arctic_domain_scatter:
 
-        figrange = 250
-
-        """plot scatter heatmap day of year"""
-
-        fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
-
-        for month in range(12):
-
-            xindex = 0
-            yindex = month
-
-            if yindex >= 4:
-                xindex = math.floor(month / 4)
-                yindex = int(month - math.floor(month / 4) * 4)
-
-            monthdir_in_situ = in_situ_data_directory_year_calculated + 'month_' + str(month + 1)
-            monthdir_racmo = racmo_arctic_data_directory + year + '/month_' + str(month + 1)
-
-            in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0).loc[:, station_arctic_domain.columns]
-            racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0).loc[:, station_arctic_domain.columns]
-
-            in_situ = np.nan_to_num(in_situ.values, nan=-1)
-            racmo = np.nan_to_num(racmo.values * 100, nan=-1)
-
-            in_situ = in_situ.flatten('F')
-            racmo = racmo.flatten('F')
-
-            RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
-            regres = scipy.stats.linregress(racmo, in_situ)
-            # number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
-
-            hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
-            xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
-            yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1] - 1)
-            c = hist[xidx, yidx]
-
-            axs[xindex, yindex].scatter(in_situ, racmo, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
-            axs[xindex, yindex].set_title(month_names[month])
-            axs[xindex, yindex].set_xlabel('In_situ')
-            axs[xindex, yindex].set_ylabel('Racmo')
-            axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
-                                     alpha=0.5)
-            axs[xindex, yindex].set_xlim(0, figrange)
-            axs[xindex, yindex].set_ylim(0, figrange)
-            axs[xindex, yindex].set_aspect(1)
-            axs[xindex, yindex].set_xticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].set_yticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(150, 50))
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(150, 40))
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
-
-        plt.savefig(fig_save_directory + '/' + year + '/RACMO_arctic_domain_monthly_scatter_' + year + '.png', dpi=800)
+        monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter')
 
     if norway_scatter:
 
-        figrange = 250
+        monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter')
 
-        """plot scatter heatmap day of year"""
 
-        fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
+    if alaska_scatter:
 
-        for month in range(12):
+        monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter')
 
-            xindex = 0
-            yindex = month
 
-            if yindex >= 4:
-                xindex = math.floor(month / 4)
-                yindex = int(month - math.floor(month / 4) * 4)
+    if canada_scatter:
 
-            monthdir_in_situ = in_situ_data_directory_year_calculated + 'month_' + str(month + 1)
-            monthdir_racmo = racmo_arctic_data_directory + year + '/month_' + str(month + 1)
+        monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter')
 
-            in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[station_stats_norway.columns.values]
-            racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[station_stats_norway.columns.values]
 
-            in_situ = np.nan_to_num(in_situ.values, nan=-1)
-            racmo = np.nan_to_num(racmo.values * 100, nan=-1)
+    if flat_europe_scatter:
 
-            in_situ = in_situ.flatten('F')
-            racmo = racmo.flatten('F')
+        monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter')
 
-            RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
-            regres = scipy.stats.linregress(racmo, in_situ)
-            # number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
 
-            hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
-            xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
-            yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1] - 1)
-            c = hist[xidx, yidx]
+    if syberia_scatter:
 
-            axs[xindex, yindex].scatter(in_situ, racmo, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
-            axs[xindex, yindex].set_title(month_names[month])
-            axs[xindex, yindex].set_xlabel('In_situ')
-            axs[xindex, yindex].set_ylabel('Racmo')
-            axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
-                                     alpha=0.5)
-            axs[xindex, yindex].set_xlim(0, figrange)
-            axs[xindex, yindex].set_ylim(0, figrange)
-            axs[xindex, yindex].set_aspect(1)
-            axs[xindex, yindex].set_xticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].set_yticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(150, 50))
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(150, 40))
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
+        monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory,
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter')
 
-        plt.savefig(fig_save_directory + '/' + year + '/RACMO_norway_monthly_scatter_' + year + '.png', dpi=800)
 
-    if norway_scatter:
-
-        figrange = 250
-
-        """plot scatter heatmap day of year"""
-
-        fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
-
-        for month in range(12):
-
-            xindex = 0
-            yindex = month
-
-            if yindex >= 4:
-                xindex = math.floor(month / 4)
-                yindex = int(month - math.floor(month / 4) * 4)
-
-            monthdir_in_situ = in_situ_data_directory_year_calculated + 'month_' + str(month + 1)
-            monthdir_racmo = racmo_arctic_data_directory + year + '/month_' + str(month + 1)
-
-            in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[station_stats_norway.columns.values]
-            racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[station_stats_norway.columns.values]
-
-            in_situ = np.nan_to_num(in_situ.values, nan=-1)
-            racmo = np.nan_to_num(racmo.values * 100, nan=-1)
-
-            in_situ = in_situ.flatten('F')
-            racmo = racmo.flatten('F')
-
-            RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
-            regres = scipy.stats.linregress(racmo, in_situ)
-            # number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
-
-            hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
-            xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
-            yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1] - 1)
-            c = hist[xidx, yidx]
-
-            axs[xindex, yindex].scatter(in_situ, racmo, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
-            axs[xindex, yindex].set_title(month_names[month])
-            axs[xindex, yindex].set_xlabel('In_situ')
-            axs[xindex, yindex].set_ylabel('Racmo')
-            axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
-                                     alpha=0.5)
-            axs[xindex, yindex].set_xlim(0, figrange)
-            axs[xindex, yindex].set_ylim(0, figrange)
-            axs[xindex, yindex].set_aspect(1)
-            axs[xindex, yindex].set_xticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].set_yticks(np.arange(0, figrange, figrange / 5))
-            axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(150, 50))
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(150, 40))
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
-
-        plt.savefig(fig_save_directory + '/' + year + '/RACMO_norway_monthly_scatter_' + year + '.png', dpi=800)
+print('all plots done')
