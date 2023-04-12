@@ -40,10 +40,10 @@ select_stations = False                  #Select stations that are in arctic dom
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_test = True
+monthly_data_test = False
 select_stations_area = False
 monthly_statistics = False
-fill_nan = False
+fill_nan = True
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
@@ -437,7 +437,7 @@ for _ , year in enumerate(years):
         stationarray['is_summer'] = ((stationarray.index.month >= 6) & (stationarray.index.month <= 8))
 
         for station in stationarray.columns:
-            stationarray[station] = stationarray[station][stationarray['is_summer']].apply(lambda x: 0 if math.isnan(x) else x)
+            stationarray[station][stationarray['is_summer']] = stationarray[station][stationarray['is_summer']].apply(lambda x: 0 if math.isnan(x) else x)
         stationarray = stationarray.drop('is_summer', axis=1)
 
         stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_no_nan_' + year + '.csv')
