@@ -18,6 +18,7 @@ from shapely.geometry import Polygon, Point
 import geopandas as gpd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import math
 
 os.chdir('/')
 
@@ -39,8 +40,8 @@ select_stations = False                  #Select stations that are in arctic dom
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_test = False
-select_stations_area = True
+monthly_data_test = True
+select_stations_area = False
 monthly_statistics = False
 fill_nan = False
 racmo_snowextend = False
@@ -276,7 +277,7 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv', index_col=0)
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_no_nan_'+year+'.csv', index_col=0)
         racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time=slice(year +'-01-01',year+'-12-31'))['sndp']
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
         
@@ -315,7 +316,7 @@ for _ , year in enumerate(years):
 
             """Check for directory to exist"""
             
-            monthdir_in_situ = in_situ_data_directory_year_calculated+'/month_'+str(month)
+            monthdir_in_situ = in_situ_data_directory_year_calculated+'/no_nan/month_'+str(month)
             os.makedirs(monthdir_in_situ,exist_ok=True)
         
             monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month)
@@ -323,7 +324,7 @@ for _ , year in enumerate(years):
             
             """Get racmo snowheight for same locations"""
 
-            month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
+            month_in_situ.to_csv(monthdir_in_situ+'/stationdata_no_nan.csv')
             month_racmo_per_station.to_csv(monthdir_racmo+'/stationdata.csv')
 
     """Select stations in a certain latitude-longitude box"""
@@ -430,12 +431,18 @@ for _ , year in enumerate(years):
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
-        startdate = year + '-08-01'
-        enddate = year + '-08-01'
+        stationarray.index = pd.to_datetime(stationarray.index)
 
-        stationarray.loc[start_date:end_date].fillna(0)
+        # Create a new column to identify summer months
+        stationarray['is_summer'] = ((stationarray.index.month >= 6) & (stationarray.index.month <= 8))
 
-        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_filled_nan_' + year + '.csv')
+        for station in stationarray.columns:
+            stationarray[station] = stationarray[station][stationarray['is_summer']].apply(lambda x: 0 if math.isnan(x) else x)
+        stationarray = stationarray.drop('is_summer', axis=1)
+
+        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_no_nan_' + year + '.csv')
+
+
 
     """Get snowextend from racmo data [Boolian]"""
 

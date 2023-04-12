@@ -25,6 +25,11 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', '
 
 """plotting control"""
 
+"""Data type"""
+
+original_data = False
+no_nan_data = True
+
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter_snowheight = True
 norway_scatter_snowheight = True
@@ -160,43 +165,50 @@ for _, year in enumerate(years):
     station_stats_norway = pd.read_csv(
         in_situ_data_directory_year_calculated + 'stations_in_norway_' + year + '.csv', index_col=0)
 
+    if original_data:
+        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/Snowheight/'
+        savename_suffix = '_original'
+    if no_nan_data:
+        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/Snowheight_no_nan/'
+        savename_suffix = '_no_nan'
+
     """Snowheight scatter plots"""
 
     if arctic_domain_scatter_snowheight:
 
         monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
 
     if norway_scatter_snowheight:
 
         monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
 
     if alaska_scatter_snowheight:
 
         monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
 
     if canada_scatter_snowheight:
 
         monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
 
     if flat_europe_scatter_snowheight:
 
         monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
 
     if syberia_scatter_snowheight:
 
         monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory,
-                        in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter')
+                        in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)
 
     """Snow extend scatter plots"""
 
-
-
 """Non yearly plots:"""
+
+print('Generating non yearly plots:')
 
 if area_map:
 
