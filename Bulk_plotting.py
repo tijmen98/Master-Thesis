@@ -25,12 +25,17 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', '
 
 """plotting control"""
 
-arctic_domain_scatter = True
-norway_scatter = True
-alaska_scatter = True
-canada_scatter = True
-syberia_scatter = True
-flat_europe_scatter = True
+"""Monthly scatters of snowheight in a certain domain:"""
+arctic_domain_scatter_snowheight = True
+norway_scatter_snowheight = True
+alaska_scatter_snowheight = True
+canada_scatter_snowheight = True
+syberia_scatter_snowheight = True
+flat_europe_scatter_snowheight = True
+
+"""Map showing the study areas"""
+
+area_map = True
 
 """File names"""
 
@@ -51,7 +56,7 @@ remapdir = datadir + 'Remap/'
 snow_cover_analysis_dir = datadir + 'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 
-"""Bounding boxes for location extraction"""
+"""Bounding boxes for study area"""
 
 polygon_norway = Polygon([(4.0, 55.0), (4.0, 65.0), (31.0, 75.0), (31.0, 70.0), (17.0, 66.0), (12.0, 58.0)])
 
@@ -155,42 +160,57 @@ for _, year in enumerate(years):
     station_stats_norway = pd.read_csv(
         in_situ_data_directory_year_calculated + 'stations_in_norway_' + year + '.csv', index_col=0)
 
-    """Arctic domain scatter"""
+    """Snowheight scatter plots"""
 
-
-    if arctic_domain_scatter:
+    if arctic_domain_scatter_snowheight:
 
         monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter')
 
-    if norway_scatter:
+    if norway_scatter_snowheight:
 
         monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter')
 
-
-    if alaska_scatter:
+    if alaska_scatter_snowheight:
 
         monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter')
 
-
-    if canada_scatter:
+    if canada_scatter_snowheight:
 
         monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter')
 
-
-    if flat_europe_scatter:
+    if flat_europe_scatter_snowheight:
 
         monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter')
 
-
-    if syberia_scatter:
+    if syberia_scatter_snowheight:
 
         monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter')
 
+    """Snow extend scatter plots"""
+
+
+
+"""Non yearly plots:"""
+
+if area_map:
+
+    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': ccrs.Stereographic(central_longitude=0.,
+                                                                                        central_latitude=90.)})
+    ax.add_feature(cfeature.LAND)
+    ax.add_feature(cfeature.COASTLINE)
+    ax.add_feature(cfeature.BORDERS)
+    gpd.GeoDataFrame(geometry=[polygon_norway]).plot(ax=ax, transform=ccrs.PlateCarree(), color='red')
+    gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='green')
+    gpd.GeoDataFrame(geometry=[polygon_syberia]).plot(ax=ax, transform=ccrs.PlateCarree(), color='blue')
+    gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='orange')
+    gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='yellow')
+
+    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=500)
 
 print('all plots done')
