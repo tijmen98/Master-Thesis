@@ -27,8 +27,8 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', '
 
 """Data type"""
 
-original_data = False
-no_nan_data = True
+original_data = True
+no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter_snowheight = True
@@ -99,24 +99,26 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[stations]
         racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[stations]
 
-        in_situ_nan = np.isnan(in_situ)
-        racmo_nan = np.isnan(racmo)
+        in_situ = in_situ.values.flatten('F')
+        racmo = racmo.values.flatten('F')
 
-        in_situ = np.nan_to_num(in_situ.values, nan=-1)
-        racmo = np.nan_to_num(racmo.values * 100, nan=-1)
+        in_situ_nan = [not bool for bool in np.isnan(in_situ)]
+        racmo = racmo[in_situ_nan]*100
+        in_situ = in_situ[in_situ_nan]
 
         """Combine two masks to only be true when both instances are true and apply to data"""
 
-        in_situ = in_situ.flatten('F')
-        racmo = racmo.flatten('F')
-
         RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
         try:
-            regres = scipy.stats.linregress(racmo, in_situ)
+            regres = scipy.stats.linregress(in_situ, racmo)
         except:
             regres = np.nan
 
-        hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
+        bins = np.round((len(in_situ)/1000)*4,0).astype(int)
+        if bins < 15:
+            bins = int(15)
+
+        hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=bins)
         xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
         yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1] - 1)
         c = hist[xidx, yidx]
@@ -127,6 +129,9 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         axs[xindex, yindex].set_ylabel('Racmo')
         axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
+        try: axs[xindex, yindex].plot(range(figrange), regres.intercept + regres.slope*range(figrange), color='red',
+                                      linestyle=(0, (3, 3)), zorder=10,alpha=0.5)
+        except: None
         axs[xindex, yindex].set_xlim(0, figrange)
         axs[xindex, yindex].set_ylim(0, figrange)
         axs[xindex, yindex].set_aspect(1)
@@ -141,6 +146,7 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
             axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
         except:
             axs[xindex, yindex].annotate(('Slope: none'), xy=(150, 30))
+        axs[xindex, yindex].annotate(('N = '+str(len(in_situ))), xy=(150, 20))
 
     plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
 
