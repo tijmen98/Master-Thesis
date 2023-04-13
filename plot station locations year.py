@@ -75,11 +75,12 @@ data_crs = ccrs.RotatedPole(pole_longitude=ds.rotated_pole.grid_north_pole_longi
 
 
 # plot data (converting flux to mm/day)
-result = ax.contourf(rlon, rlat, racmo_24_arc_snowheight['sndp'].squeeze().isel(time=0), levels = levels , norm=norm, extend='both', cmap='Greys', transform=data_crs)
+result = ax.contourf(rlon, rlat, racmo_24_arc_snowheight['sndp'].squeeze().isel(time=0), levels=levels, norm=norm,
+                     extend='both', cmap='Greys', transform=data_crs)
 
 ax.coastlines(resolution='50m')
 
-plt.colorbar(result, orientation='horizontal', label='Snowdepth [\N{DEGREE SIGN}C]', extend='both', fraction=0.046, pad=0.04)
+plt.colorbar(result, orientation='horizontal', label='Snowdepth', extend='both', fraction=0.046, pad=0.04)
 
 for i,v in enumerate(stations):
     lat = float(station_stats.loc['latitude',v])
@@ -89,7 +90,8 @@ for i,v in enumerate(stations):
     
     if v in stationselect:
     
-        plt.scatter(racmo_24_arc_snowheight['rlon'][y],racmo_24_arc_snowheight['rlat'][x],zorder=20, color = 'green',transform=data_crs,s=2)     #cmap(norm(float(station_stats.loc['melt_season_acc_snowheight',v])/100)),edgecolor='black')
+        plt.scatter(racmo_24_arc_snowheight['rlon'][y], racmo_24_arc_snowheight['rlat'][x], zorder=20, color = 'green',
+                    transform=data_crs,s=2)
     
 plt.savefig(fig_save_directory+'station_locations'+year+'.png')
 
