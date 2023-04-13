@@ -11,7 +11,7 @@ import geopandas as gpd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-os.chdir('/')
+os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
 
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
