@@ -37,12 +37,12 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 
 select_stations = False                  #Select stations that are in arctic domain
 calc_stationdata = False                #Extract station snowdepth data and save to csv per station
-interpolate_stationdata = False         #Interpolate
+interpolate_stationdata = False
+fill_nan = True                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = True
 select_stations_area = False
 monthly_statistics = False
-fill_nan = False
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
@@ -208,6 +208,33 @@ for _ , year in enumerate(years):
             stationarray[v].interpolate(method='linear', inplace=True, limit = days_missing_limit)
     
         stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_interpolated_'+year+'.csv')
+
+    """Fill nan's in in situ snowheight data in summer"""
+
+    if fill_nan:
+
+        print("Filling nans:")
+
+        """In situ data"""
+
+        stationarray = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_' + year + '.csv', index_col=0)
+
+        station_stats = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
+
+        stationarray.index = pd.to_datetime(stationarray.index)
+
+        # Create a new column to identify summer months
+        stationarray['is_summer'] = ((stationarray.index.month >= 5) & (stationarray.index.month <= 9))
+
+        for station in stationarray.columns:
+            stationarray.loc[(stationarray.index.month >= 5) & (stationarray.index.month <= 9), station] = \
+            stationarray[station][stationarray['is_summer']].apply(lambda x: 0 if math.isnan(x) else x)
+        stationarray = stationarray.drop('is_summer', axis=1)
+
+        stationarray.to_csv(
+            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_no_nan_' + year + '.csv')
 
     """Station specific data to csv"""
     
@@ -410,32 +437,6 @@ for _ , year in enumerate(years):
             statistics_stations.to_csv(monthdir_in_situ+'/Calculated_statistics.csv')
 
             del statistics_stations
-
-    """Fill nan's in in situ snowheight data in summer"""
-
-    if fill_nan:
-
-        print("Filling nans:")
-
-        """In situ data"""
-
-        stationarray = pd.read_csv(
-            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_' + year + '.csv', index_col=0)
-
-        station_stats = pd.read_csv(
-            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
-
-        stationarray.index = pd.to_datetime(stationarray.index)
-
-        # Create a new column to identify summer months
-        stationarray['is_summer'] = ((stationarray.index.month >= 6) & (stationarray.index.month <= 8))
-
-        for station in stationarray.columns:
-            stationarray[station][stationarray['is_summer']] = stationarray[station][stationarray['is_summer']].apply(lambda x: 0 if math.isnan(x) else x)
-        stationarray = stationarray.drop('is_summer', axis=1)
-
-        stationarray.to_csv(in_situ_data_directory_year_calculated + 'stations_daily_snowheight_no_nan_' + year + '.csv')
-
 
 
     """Get snowextend from racmo data [Boolian]"""
