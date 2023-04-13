@@ -18,7 +18,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2003]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -125,8 +125,8 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
 
         axs[xindex, yindex].scatter(in_situ, racmo, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
         axs[xindex, yindex].set_title(month_names[month])
-        axs[xindex, yindex].set_xlabel('In_situ')
-        axs[xindex, yindex].set_ylabel('Racmo')
+        axs[xindex, yindex].set_xlabel('In-situ snowheight [cm]')
+        axs[xindex, yindex].set_ylabel('Racmo snowheight [cm]')
         axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
         try: axs[xindex, yindex].plot(range(figrange), regres.intercept + regres.slope*range(figrange), color='red',
