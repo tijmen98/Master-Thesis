@@ -28,7 +28,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]                #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 snow_height_threshold = 10              #Threshold in cm
 breakdate = '-07-01'                    #Split date between accumulation and melt season
@@ -89,8 +89,6 @@ for _ , year in enumerate(years):
     
     in_situ_data_directory_year = in_situ_data_directory+year+'/'
     in_situ_data_directory_year_calculated = in_situ_data_directory+year+'/Calculated/'
-    
-    
 
     """If directory does not yet exists, make directories"""
     
@@ -209,9 +207,6 @@ for _ , year in enumerate(years):
         for i,v in enumerate(stations):
     
             stationarray[v].interpolate(method='linear', inplace=True, limit = days_missing_limit)
-            
-            if stationarray[v].isna().sum() != 0:
-                stationarray.drop(columns=[v],inplace=True)
     
         stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_interpolated_'+year+'.csv')
 

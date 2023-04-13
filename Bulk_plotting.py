@@ -99,8 +99,13 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[stations]
         racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[stations]
 
+        in_situ_nan = np.isnan(in_situ)
+        racmo_nan = np.isnan(racmo)
+
         in_situ = np.nan_to_num(in_situ.values, nan=-1)
         racmo = np.nan_to_num(racmo.values * 100, nan=-1)
+
+        """Combine two masks to only be true when both instances are true and apply to data"""
 
         in_situ = in_situ.flatten('F')
         racmo = racmo.flatten('F')
@@ -110,7 +115,6 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
             regres = scipy.stats.linregress(racmo, in_situ)
         except:
             regres = np.nan
-        # number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
 
         hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
         xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0] - 1)
