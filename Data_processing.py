@@ -6,21 +6,28 @@ Created on Thu Mar 16 15:02:34 2023
 @author: tijmen
 """
 
+desktop = True
+laptop = False
+
+
+
+
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import datetime
 import xarray as xr
 import statistics
 from shapely.geometry import Polygon, Point
 
 import geopandas as gpd
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import math
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+if laptop:
+    os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+
+if desktop:
+    os.chdir('H:\Documenten\Master\Master_thesis\Python_scripts')
 
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
@@ -28,17 +35,17 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
 
 """Calculation control"""
 
-select_stations = False                  #Select stations that are in arctic domain
-calc_stationdata = False                #Extract station snowdepth data and save to csv per station
+select_stations = False                 #Select stations that are in arctic domain
+calc_stationdata = True               #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
-fill_nan = True                         #Interpolate
+fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = True
 select_stations_area = False
@@ -49,14 +56,26 @@ snow_extend_statistics = False
 
 """File names"""
 
-racmo_snowdepth = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
+
+"""Variable control"""
+
+Snowdepth = False
+Surface_temp = True
+Precipitation = False
 
 
-filename='/Measure_merged.nc' #Filename for combined measure dataset
+in_situ_variable = ''
+in_situ_savedir = 'surface_temperature'
 
 """Directories"""
 
-datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+if laptop:
+    print('Directory structure: laptop')
+    datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+if desktop:
+    print('Directory structure: desktop')
+    datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
 racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
@@ -80,6 +99,25 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 """Start of yearly calculations:"""
 
+if Snowdepth:
+    print('Calculation variable: Snowdepth')
+
+    in_situ_variable = 'snow_depth'
+    racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'sndp'
+
+if Surface_temp:
+    print('Calculation variable: Surface temperature')
+
+    in_situ_variable = 'air_temperature'
+    racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'tas'
+
+if Precipitation:
+
+    in_situ_variable = 'snd'
+
+
 for _ , year in enumerate(years):
 
     year = str(year)
@@ -97,11 +135,11 @@ for _ , year in enumerate(years):
 
     if select_stations:
 
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory + racmo_snowdepth).sel(time=slice(year + '-01-01', year + '-12-31'))['sndp']
+        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory + racmo_filename).sel(time=slice(year + '-01-01', year + '-12-31'))[racmo_variable]
         rlats = racmo_24_arc_snowheight['rlat'].values
         rlons = racmo_24_arc_snowheight['rlon'].values
 
-        in_situ_data_directory_yearlist = os.listdir(in_situ_data_directory_year)
+        in_situ_data_directory_yearlist = os.listdir(in_situ_data_directory_year+'/Raw_data/')
         openfiles = []
 
         for i, v in enumerate(in_situ_data_directory_yearlist):
@@ -116,7 +154,7 @@ for _ , year in enumerate(years):
         observations = []
 
         for i, v in enumerate(openfiles):
-            observations.append(pd.read_csv(in_situ_data_directory_year + v))
+            observations.append(pd.read_csv(in_situ_data_directory_year+'/Raw_data/' + v))
 
         observation = pd.concat(observations)
 
@@ -155,7 +193,7 @@ for _ , year in enumerate(years):
         
         print('Transforming stationdata: per station yearly record')
         
-        in_situ_data_directory_yearlist = os.listdir(in_situ_data_directory_year)
+        in_situ_data_directory_yearlist = os.listdir(in_situ_data_directory_year+'/Raw_data/')
         openfiles = []
         
         for i,v in enumerate(in_situ_data_directory_yearlist):
@@ -172,7 +210,7 @@ for _ , year in enumerate(years):
         
         for i , v in enumerate(openfiles):
             
-            observations.append(pd.read_csv(in_situ_data_directory_year+v))
+            observations.append(pd.read_csv(in_situ_data_directory_year+'/Raw_data/'+v))
 
         observation = pd.concat(observations)
 
@@ -186,13 +224,13 @@ for _ , year in enumerate(years):
 
         for i,v in enumerate(stations):
             
-            station_snow_depth = observation.loc[(observation['station_name'] == v) & (observation['observed_variable'] == 'snow_depth')]
+            station_snow_depth = observation.loc[(observation['station_name'] == v) & (observation['observed_variable'] == in_situ_variable)]
             for i2 , v2 in enumerate(station_snow_depth['observation_value']):
                 try: stationarray.loc[station_snow_depth['date_time'].iloc[i2].split(' ')[0],v] = v2
                 
                 except: stationarray.loc[station_snow_depth['date_time'].iloc[i2],v] = v2
         
-        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+ year + '.csv')
 
     """Interpolate and select data with a bigger gap then days_missing_limit"""
     
@@ -200,14 +238,14 @@ for _ , year in enumerate(years):
         
         print('Interpolating stationdata')
        
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv',index_col=0)
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+ year + '.csv',index_col=0)
         stations = np.array(stationarray.columns)
         
         for i,v in enumerate(stations):
     
             stationarray[v].interpolate(method='linear', inplace=True, limit = days_missing_limit)
     
-        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_interpolated_'+year+'.csv')
+        stationarray.to_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_interpolated_'+year+'.csv')
 
     """Fill nan's in in situ snowheight data in summer"""
 
@@ -218,7 +256,7 @@ for _ , year in enumerate(years):
         """In situ data"""
 
         stationarray = pd.read_csv(
-            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_' + year + '.csv', index_col=0)
+            in_situ_data_directory_year_calculated + 'stations_daily_'+in_situ_variable+'_' + year + '.csv', index_col=0)
 
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
@@ -234,7 +272,7 @@ for _ , year in enumerate(years):
         stationarray = stationarray.drop('is_summer', axis=1)
 
         stationarray.to_csv(
-            in_situ_data_directory_year_calculated + 'stations_daily_snowheight_no_nan_' + year + '.csv')
+            in_situ_data_directory_year_calculated + 'stations_daily_'+in_situ_variable+'_no_nan_' + year + '.csv')
 
     """Station specific data to csv"""
     
@@ -244,8 +282,8 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_'+year+'.csv',index_col=0) 
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time = slice(year+'-01-01',year+'-12-31'))['sndp']
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+year+'.csv',index_col=0)
+        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_filename).sel(time = slice(year+'-01-01',year+'-12-31'))[racmo_variable]
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv',index_col=0)
         
         startdates = pd.date_range(year+"-01-01", periods=12, freq="MS")
@@ -298,8 +336,8 @@ for _ , year in enumerate(years):
         
         """In situ data"""
         
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_snowheight_no_nan_'+year+'.csv', index_col=0)
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_snowdepth).sel(time=slice(year +'-01-01',year+'-12-31'))['sndp']
+        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+year+'.csv', index_col=0)
+        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_filename).sel(time=slice(year +'-01-01',year+'-12-31'))[racmo_variable]
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
         
         rlats = station_stats.loc['rlat']
@@ -337,10 +375,10 @@ for _ , year in enumerate(years):
 
             """Check for directory to exist"""
             
-            monthdir_in_situ = in_situ_data_directory_year_calculated+'/no_nan/month_'+str(month)
+            monthdir_in_situ = in_situ_data_directory_year_calculated +'/'+in_situ_variable+'/month_'+str(month)
             os.makedirs(monthdir_in_situ,exist_ok=True)
         
-            monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month)
+            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+year+'/month_'+str(month)
             os.makedirs(monthdir_racmo,exist_ok=True)
             
             """Get racmo snowheight for same locations"""
@@ -419,7 +457,7 @@ for _ , year in enumerate(years):
             statistics_stations = pd.DataFrame(index=indexes, columns=stations)
 
             monthdir_in_situ = in_situ_data_directory_year_calculated + '/month_' + str(month)
-            monthdir_racmo = racmo_arctic_data_directory + year + '/month_' + str(month)
+            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+year+'/month_'+str(month)
 
             in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv',index_col=0)
             racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv',index_col=0)
@@ -490,7 +528,7 @@ for _ , year in enumerate(years):
 
         datamerge = datamerge.sel(time=slice(t_start, t_stop))
 
-        datamerge.to_netcdf(snow_cover_extend_measure_dir + year + filename)
+        datamerge.to_netcdf(snow_cover_extend_measure_dir + year + measure_filename)
 
     if snow_extend_statistics:
 
