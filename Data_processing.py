@@ -35,7 +35,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
@@ -116,7 +116,7 @@ if Surface_temp:
 if Precipitation:
 
     in_situ_variable = 'accumulated_precipitation'
-    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6.DD.nc '
+    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'pr'
 
 for _ , year in enumerate(years):
