@@ -43,7 +43,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
-calc_stationdata = True               #Extract station snowdepth data and save to csv per station
+calc_stationdata = False              #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
@@ -61,8 +61,8 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 """Variable control"""
 
 Snowdepth = False
-Surface_temp = True
-Precipitation = False
+Surface_temp = False
+Precipitation = True
 
 
 in_situ_variable = ''
@@ -115,8 +115,9 @@ if Surface_temp:
 
 if Precipitation:
 
-    in_situ_variable = 'snd'
-
+    in_situ_variable = 'accumulated_precipitation'
+    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6.DD.nc '
+    racmo_variable = 'pr'
 
 for _ , year in enumerate(years):
 
@@ -337,7 +338,7 @@ for _ , year in enumerate(years):
         """In situ data"""
         
         stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+year+'.csv', index_col=0)
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_filename).sel(time=slice(year +'-01-01',year+'-12-31'))[racmo_variable]
+        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_filename) #.sel(time=slice(year +'-01-01',year+'-12-31'))[racmo_variable]
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv', index_col=0)
         
         rlats = station_stats.loc['rlat']
