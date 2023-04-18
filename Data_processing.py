@@ -43,7 +43,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
-calc_stationdata = False              #Extract station snowdepth data and save to csv per station
+calc_stationdata = True              #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
