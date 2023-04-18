@@ -384,7 +384,7 @@ for _ , year in enumerate(years):
             
             """Get racmo snowheight for same locations"""
 
-            month_in_situ.to_csv(monthdir_in_situ+'/stationdata_no_nan.csv')
+            month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
             month_racmo_per_station.to_csv(monthdir_racmo+'/stationdata.csv')
 
     """Select stations in a certain latitude-longitude box"""

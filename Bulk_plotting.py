@@ -1,5 +1,5 @@
-desktop = True
-laptop = False
+desktop = False
+laptop = True
 
 import os
 from shapely.geometry import Polygon, Point
@@ -24,22 +24,21 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2003]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
 Snowdepth = False
-Surface_temp = False
-Precipitation = True
+Surface_temp = True
+Precipitation = False
 
 
 """plotting control"""
 
 """Data type"""
 
-original_data = False
-no_nan_data = True
+no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
@@ -97,6 +96,7 @@ if Snowdepth:
     in_situ_variable = 'snow_depth'
     racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'sndp'
+    savename_suffix = 'snowdepth'
 
 if Surface_temp:
     print('Calculation variable: Surface temperature')
@@ -104,12 +104,14 @@ if Surface_temp:
     in_situ_variable = 'air_temperature'
     racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'tas'
+    savename_suffix = 'surface_temperature'
 
 if Precipitation:
 
     in_situ_variable = 'accumulated_precipitation'
     racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'pr'
+    savename_suffix = 'precipitation'
 
 
 def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
@@ -130,7 +132,7 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
             yindex = int(month - math.floor(month / 4) * 4)
 
         monthdir_in_situ = in_situ_directory + 'month_' + str(month + 1)
-        monthdir_racmo = racmo_directory + year + '/month_' + str(month + 1)
+        monthdir_racmo = racmo_directory + '/month_' + str(month + 1)
 
         in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv', index_col=0)[stations]
         racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv', index_col=0)[stations]
@@ -139,7 +141,9 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         racmo = racmo.values.flatten('F')
 
         in_situ_nan = [not bool for bool in np.isnan(in_situ)]
-        racmo = racmo[in_situ_nan]*100
+        racmo = racmo[in_situ_nan]
+        if Snowdepth:
+            racmo = racmo[in_situ_nan]*100
         in_situ = in_situ[in_situ_nan]
 
         """Combine two masks to only be true when both instances are true and apply to data"""
@@ -192,62 +196,61 @@ for _, year in enumerate(years):
     print('Generating plots for: ' + year)
     """Year specific directories"""
 
-    in_situ_data_directory_year = in_situ_data_directory + year + '/'
-    in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/'
+    in_situ_data_directory_year = in_situ_data_directory + year + '/Calculated/'
+    in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/'+in_situ_variable+'/'
+
+    if no_nan_data:
+        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/' + in_situ_variable + '_no_nan/'
+
+    racmo_arctic_data_directory_year = racmo_arctic_data_directory + racmo_variable +'/'+ year
+
 
     """Import area specifications"""
 
-    station_arctic_domain = pd.read_csv(in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv',
+    station_arctic_domain = pd.read_csv(in_situ_data_directory_year + '/station_in_arctic_domain_' + year + '.csv',
                                 index_col=0)
 
     station_stats_canada = pd.read_csv(
-        in_situ_data_directory_year_calculated + 'stations_in_canada_' + year + '.csv', index_col=0)
+        in_situ_data_directory_year + 'stations_in_canada_' + year + '.csv', index_col=0)
     station_stats_syberia = pd.read_csv(
-        in_situ_data_directory_year_calculated + 'stations_in_syberia_' + year + '.csv', index_col=0)
+        in_situ_data_directory_year + 'stations_in_syberia_' + year + '.csv', index_col=0)
     station_stats_flat_europe = pd.read_csv(
-        in_situ_data_directory_year_calculated + 'stations_in_flat_europe_' + year + '.csv', index_col=0)
+        in_situ_data_directory_year + 'stations_in_flat_europe_' + year + '.csv', index_col=0)
     station_stats_alaska = pd.read_csv(
-        in_situ_data_directory_year_calculated + 'stations_in_alaska_' + year + '.csv', index_col=0)
+        in_situ_data_directory_year + 'stations_in_alaska_' + year + '.csv', index_col=0)
     station_stats_norway = pd.read_csv(
-        in_situ_data_directory_year_calculated + 'stations_in_norway_' + year + '.csv', index_col=0)
-
-    if original_data:
-        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/Snowheight/'
-        savename_suffix = '_original'
-    if no_nan_data:
-        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/Snowheight_no_nan/'
-        savename_suffix = '_no_nan'
+        in_situ_data_directory_year + 'stations_in_norway_' + year + '.csv', index_col=0)
 
     """Snowheight scatter plots"""
 
     if arctic_domain_scatter:
 
-        monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
 
     if norway_scatter:
 
-        monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
 
     if alaska_scatter:
 
-        monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
 
     if canada_scatter:
 
-        monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
 
     if flat_europe_scatter:
 
-        monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
 
     if syberia_scatter:
 
-        monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory,
+        monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory_year,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)
 
     """Snow extend scatter plots"""
