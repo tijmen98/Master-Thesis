@@ -1,3 +1,6 @@
+desktop = True
+laptop = False
+
 import os
 from shapely.geometry import Polygon, Point
 import matplotlib.pyplot as plt
@@ -11,8 +14,11 @@ import geopandas as gpd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
+if laptop:
+    os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
 
+if desktop:
+    os.chdir('H:\Documenten\Master\Master_thesis\Python_scripts')
 import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
 
@@ -23,6 +29,11 @@ months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
+Snowdepth = False
+Surface_temp = False
+Precipitation = True
+
+
 """plotting control"""
 
 """Data type"""
@@ -31,12 +42,12 @@ original_data = False
 no_nan_data = True
 
 """Monthly scatters of snowheight in a certain domain:"""
-arctic_domain_scatter_snowheight = True
-norway_scatter_snowheight = True
-alaska_scatter_snowheight = True
-canada_scatter_snowheight = True
-syberia_scatter_snowheight = True
-flat_europe_scatter_snowheight = True
+arctic_domain_scatter = True
+norway_scatter = True
+alaska_scatter = True
+canada_scatter = True
+syberia_scatter = True
+flat_europe_scatter = True
 
 """Map showing the study areas"""
 
@@ -45,13 +56,18 @@ area_map = True
 """File names"""
 
 racmo_snowdepth = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-
 filename = '/Measure_merged.nc'  # Filename for combined measure dataset
 
 """Directories"""
 
 fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
-datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+
+if laptop:
+    print('Directory structure: laptop')
+    datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+if desktop:
+    print('Directory structure: desktop')
+    datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir + 'In_situ_data/'
 racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001/'
@@ -74,6 +90,26 @@ polygon_alaska = Polygon([(-170.0, 55.0), (-170.0, 65.0), (-160.0, 75.0), (-160.
 polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0, 75.0), (-60.0, 65.0)])
 
 """Start of yearly calculations:"""
+
+if Snowdepth:
+    print('Calculation variable: Snowdepth')
+
+    in_situ_variable = 'snow_depth'
+    racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'sndp'
+
+if Surface_temp:
+    print('Calculation variable: Surface temperature')
+
+    in_situ_variable = 'air_temperature'
+    racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'tas'
+
+if Precipitation:
+
+    in_situ_variable = 'accumulated_precipitation'
+    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'pr'
 
 
 def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
@@ -184,32 +220,32 @@ for _, year in enumerate(years):
 
     """Snowheight scatter plots"""
 
-    if arctic_domain_scatter_snowheight:
+    if arctic_domain_scatter:
 
         monthly_scatter(station_arctic_domain.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
 
-    if norway_scatter_snowheight:
+    if norway_scatter:
 
         monthly_scatter(station_stats_norway.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
 
-    if alaska_scatter_snowheight:
+    if alaska_scatter:
 
         monthly_scatter(station_stats_alaska.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
 
-    if canada_scatter_snowheight:
+    if canada_scatter:
 
         monthly_scatter(station_stats_canada.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
 
-    if flat_europe_scatter_snowheight:
+    if flat_europe_scatter:
 
         monthly_scatter(station_stats_flat_europe.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
 
-    if syberia_scatter_snowheight:
+    if syberia_scatter:
 
         monthly_scatter(station_stats_syberia.columns.values, year, racmo_arctic_data_directory,
                         in_situ_data_directory_year_calculated, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)

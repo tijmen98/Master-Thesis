@@ -379,7 +379,7 @@ for _ , year in enumerate(years):
             monthdir_in_situ = in_situ_data_directory_year_calculated +'/'+in_situ_variable+'/month_'+str(month)
             os.makedirs(monthdir_in_situ,exist_ok=True)
         
-            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+year+'/month_'+str(month)
+            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+'/'+year+'/month_'+str(month)
             os.makedirs(monthdir_racmo,exist_ok=True)
             
             """Get racmo snowheight for same locations"""
