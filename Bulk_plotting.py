@@ -24,7 +24,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -91,7 +91,7 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 """Start of yearly calculations:"""
 
 if Snowdepth:
-    print('Calculation variable: Snowdepth')
+    print('Variable: Snowdepth')
 
     in_situ_variable = 'snow_depth'
     racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
@@ -99,7 +99,7 @@ if Snowdepth:
     savename_suffix = 'snowdepth'
 
 if Surface_temp:
-    print('Calculation variable: Surface temperature')
+    print('Variable: Surface temperature')
 
     in_situ_variable = 'air_temperature'
     racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
@@ -107,6 +107,7 @@ if Surface_temp:
     savename_suffix = 'surface_temperature'
 
 if Precipitation:
+    print('Variable: Precipitation')
 
     in_situ_variable = 'accumulated_precipitation'
     racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
