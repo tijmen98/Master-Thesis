@@ -117,7 +117,7 @@ if Precipitation:
 
 def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
 
-    figrange = 250
+    limits = [230, 320]
 
     """plot scatter heatmap day of year"""
 
@@ -168,29 +168,28 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         axs[xindex, yindex].set_title(month_names[month])
         axs[xindex, yindex].set_xlabel('In-situ snowheight [cm]')
         axs[xindex, yindex].set_ylabel('Racmo snowheight [cm]')
-        axs[xindex, yindex].plot(range(figrange), range(figrange), color='black', linestyle=(0, (3, 3)), zorder=10,
+        axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), np.arange(limits[0], limits[1]), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
-        try: axs[xindex, yindex].plot(range(figrange), regres.intercept + regres.slope*range(figrange), color='red',
-                                      linestyle=(0, (3, 3)), zorder=10,alpha=0.5)
+        try: axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), regres.intercept + regres.slope*np.arange(limits[0], limits[1]), color='red',
+                                      linestyle=(0, (3, 3)), zorder=10, alpha=0.5)
         except: None
-        axs[xindex, yindex].set_xlim(0, figrange)
-        axs[xindex, yindex].set_ylim(0, figrange)
+        axs[xindex, yindex].set_xlim(limits[0], limits[1])
+        axs[xindex, yindex].set_ylim(limits[0], limits[1])
         axs[xindex, yindex].set_aspect(1)
-        axs[xindex, yindex].set_xticks(np.arange(0, figrange, figrange / 5))
-        axs[xindex, yindex].set_yticks(np.arange(0, figrange, figrange / 5))
-        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(150, 50))
+        axs[xindex, yindex].set_xticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
+        axs[xindex, yindex].set_yticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[1]-30, limits[0]+5*((limits[1]-limits[0])/20)))
         try:
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(150, 40))
+            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
         except:
-            axs[xindex, yindex].annotate(('Slope: none'), xy=(150, 40))
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
         try:
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(150, 30))
+            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
         except:
-            axs[xindex, yindex].annotate(('Slope: none'), xy=(150, 30))
-        axs[xindex, yindex].annotate(('N = '+str(len(in_situ))), xy=(150, 20))
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
+        axs[xindex, yindex].annotate(('N = '+str(len(in_situ))), xy=(limits[1]-30, limits[0]+2*((limits[1]-limits[0])/20)))
 
     plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
-
 
 for _, year in enumerate(years):
     year = str(year)

@@ -43,16 +43,17 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
-calc_stationdata = True              #Extract station snowdepth data and save to csv per station
+calc_stationdata = False              #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_test = True
+monthly_data_test = False
 select_stations_area = False
 monthly_statistics = False
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
+monthly_variable_difference = True
 
 """File names"""
 
@@ -549,6 +550,22 @@ for _ , year in enumerate(years):
 
         snow_cover_measure_acc.to_netcdf(snow_cover_analysis_dir + year + '/measure_acc_season.nc')
         snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_acc_season.nc')
+
+    if monthly_variable_difference:
+
+        for month in months:
+
+            racmo_variable_1 =
+            in_situ_variable_1 =
+
+            racmo_variable_2 =
+            in_situ_variable_2 =
+
+            for station in enumerate(pd.read()):
+                in_situ_1_nan = [not bool for bool in np.isnan(in_situ_variable_1)]
+                in_situ_2_nan = [not bool for bool in np.isnan(in_situ_variable_2)]
+
+                in_situ_combined_nan = [in_situ_1_nan == True & in_situ_2_nan == True]
 
 
 print('All years done')
