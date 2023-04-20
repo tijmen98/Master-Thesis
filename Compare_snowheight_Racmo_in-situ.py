@@ -26,7 +26,7 @@ import Thesis_Functions.calculations as Calculations
 import Thesis_Functions.data as Data
 import Thesis_Functions.plotting as Plotting
 
-years = 2001
+year = 2001
 
 crs_racmo = CRS.from_proj4("-m 57.295779506 +proj=ob_tran +o_proj=latlon +o_lat_p=6.6 +lon_0=180.0")
 crs_stations = CRS.from_string("EPSG:4326")

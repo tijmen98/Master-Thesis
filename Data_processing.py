@@ -6,8 +6,8 @@ Created on Thu Mar 16 15:02:34 2023
 @author: tijmen
 """
 
-desktop = True
-laptop = False
+desktop = False
+laptop = True
 
 
 
@@ -49,11 +49,11 @@ fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
 select_stations_area = False
-monthly_statistics = False
+monthly_statistics = True
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
-monthly_variable_difference = True
+monthly_variable_difference = False
 
 """File names"""
 
@@ -61,9 +61,9 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 """Variable control"""
 
-Snowdepth = False
+Snowdepth = True
 Surface_temp = False
-Precipitation = True
+Precipitation = False
 
 
 in_situ_variable = ''
@@ -458,8 +458,8 @@ for _ , year in enumerate(years):
             print('Month ' + str(month))
             statistics_stations = pd.DataFrame(index=indexes, columns=stations)
 
-            monthdir_in_situ = in_situ_data_directory_year_calculated + '/month_' + str(month)
-            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+year+'/month_'+str(month)
+            monthdir_in_situ = in_situ_data_directory_year_calculated + in_situ_variable + '/month_' + str(month)
+            monthdir_racmo = racmo_arctic_data_directory+racmo_variable+'/'+year+'/month_'+str(month)
 
             in_situ = pd.read_csv(monthdir_in_situ + '/stationdata.csv',index_col=0)
             racmo = pd.read_csv(monthdir_racmo + '/stationdata.csv',index_col=0)
@@ -550,22 +550,6 @@ for _ , year in enumerate(years):
 
         snow_cover_measure_acc.to_netcdf(snow_cover_analysis_dir + year + '/measure_acc_season.nc')
         snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_acc_season.nc')
-
-    if monthly_variable_difference:
-
-        for month in months:
-
-            racmo_variable_1 =
-            in_situ_variable_1 =
-
-            racmo_variable_2 =
-            in_situ_variable_2 =
-
-            for station in enumerate(pd.read()):
-                in_situ_1_nan = [not bool for bool in np.isnan(in_situ_variable_1)]
-                in_situ_2_nan = [not bool for bool in np.isnan(in_situ_variable_2)]
-
-                in_situ_combined_nan = [in_situ_1_nan == True & in_situ_2_nan == True]
 
 
 print('All years done')
