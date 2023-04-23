@@ -39,17 +39,19 @@ years = [2002, 2003, 2004]              #list of years where data should be proc
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
-
+tilefrac = 'tilefrac7'
+tilefrac_threshold = 0.1
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
+tilefrac_select = True
 calc_stationdata = False              #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
 select_stations_area = False
-monthly_statistics = True
+monthly_statistics = False
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
@@ -104,21 +106,28 @@ if Snowdepth:
     print('Calculation variable: Snowdepth')
 
     in_situ_variable = 'snow_depth'
-    racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'sndp'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
 
 if Surface_temp:
     print('Calculation variable: Surface temperature')
 
     in_situ_variable = 'air_temperature'
-    racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'tas'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
 
 if Precipitation:
 
     in_situ_variable = 'accumulated_precipitation'
-    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'pr'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
+if tilefrac_select:
+
+    tilefrac_filename = 'NC_DEFAULT/'+tilefrac+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
 
 for _ , year in enumerate(years):
 
@@ -188,6 +197,26 @@ for _ , year in enumerate(years):
                 station_stats.drop(columns=v,inplace=True)
 
         station_stats.to_csv(in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv')
+
+    """Select stations within a certain tile with feature 'tilefrac' in it"""
+    if tilefrac_select:
+
+        racmo_tilefrac = xr.open_dataset(racmo_arctic_data_directory + tilefrac_filename).sel(time=slice(year + '-01-01', year + '-12-31'))[tilefrac]
+
+        station_stats = pd.read_csv(in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
+
+        print('Selecting stations that are in tilefrac')
+
+        for i, v in enumerate(station_stats.columns):
+
+            lat = station_stats.loc['rlat'][v]
+            lon = station_stats.loc['rlon'][v]
+
+            if racmo_tilefrac.sel(rlon=lon, rlat=lat).max('time').values[0] > tilefrac_threshold:
+
+                station_stats.drop(columns=v,inplace=True)
+
+        station_stats.to_csv(in_situ_data_directory_year_calculated + 'station_'+tilefrac + '_' + year + '.csv')
 
     """Reformat raw data into station specific data, only when true"""
     
@@ -438,7 +467,6 @@ for _ , year in enumerate(years):
         stations = station_stats.columns
         station_stats[stations[canada_points]].to_csv(
             in_situ_data_directory_year_calculated + 'stations_in_canada_' + year + '.csv')
-
 
     """Calculate statistics for each monthly file"""
 

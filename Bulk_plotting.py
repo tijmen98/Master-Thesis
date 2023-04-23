@@ -274,4 +274,4 @@ if area_map:
 
     plt.savefig(fig_save_directory+'map_study_areas.png', dpi=500)
 
-print('all plots done')
+print('All plots done')
