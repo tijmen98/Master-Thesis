@@ -205,7 +205,7 @@ for _ , year in enumerate(years):
 
         station_stats = pd.read_csv(in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
-        print('Selecting stations that are in tilefrac')
+        print('Selecting stations that are in '+tilefrac)
 
         for i, v in enumerate(station_stats.columns):
 
@@ -215,6 +215,8 @@ for _ , year in enumerate(years):
             if racmo_tilefrac.sel(rlon=lon, rlat=lat).max('time').values[0] > tilefrac_threshold:
 
                 station_stats.drop(columns=v,inplace=True)
+
+            print(len(station_stats.columns) + ' stations found in ' + tilefrac)
 
         station_stats.to_csv(in_situ_data_directory_year_calculated + 'station_'+tilefrac + '_' + year + '.csv')
 
