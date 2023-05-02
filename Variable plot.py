@@ -32,11 +32,12 @@ datadir_racmo = '/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT
 
 year = str(2001)
 
-ds = xr.open_dataset('/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6.DD.nc')
+variable = 'tilefrac1'
 
-racmo_t2m = ds['tas'].sel(time=slice(year+'/01/01',year+'/12/31')).mean(dim='time').squeeze()
+ds = xr.open_dataset('/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6.DD.nc')
 
-racmo_t2m = racmo_t2m-273.15
+racmo_variable = ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).mean(dim='time').squeeze()
+
 
 rlon = ds.rlon.values
 rlat = ds.rlat.values
@@ -50,7 +51,7 @@ levels=20
 norm = colors.Normalize(vmin=-25,vmax=10)
 
 # plot data (converting flux to mm/day)
-result = ax.contourf(rlon, rlat, racmo_t2m, levels = levels , norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
+result = ax.contourf(rlon, rlat, racmo_variable, levels = levels , norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
 
 ax.coastlines(resolution='50m')
 
@@ -58,6 +59,6 @@ plt.colorbar(result, orientation='horizontal', label='T2m [\N{DEGREE SIGN}C]', e
 
 ax.set_title('Yearly mean T2m (2001)', size='xx-large')
 
-plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/t2m_arc.jpeg',dpi=400)
+plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'_arc.jpeg',dpi=400)
 
 print('')

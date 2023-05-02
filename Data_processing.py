@@ -6,8 +6,8 @@ Created on Thu Mar 16 15:02:34 2023
 @author: tijmen
 """
 
-desktop = False
-laptop = True
+desktop = True
+laptop = False
 
 
 
