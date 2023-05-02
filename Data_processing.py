@@ -6,8 +6,8 @@ Created on Thu Mar 16 15:02:34 2023
 @author: tijmen
 """
 
-desktop = True
-laptop = False
+desktop = False
+laptop = True
 
 
 
@@ -39,8 +39,8 @@ years = [2002, 2003, 2004]              #list of years where data should be proc
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
-tilefrac = 'tilefrac7'
-tilefrac_threshold = 0.1
+tilefrac = 'tilefrac9'
+tilefrac_threshold = 0
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
@@ -209,14 +209,14 @@ for _ , year in enumerate(years):
 
         for i, v in enumerate(station_stats.columns):
 
-            lat = station_stats.loc['rlat'][v]
-            lon = station_stats.loc['rlon'][v]
+            rlat = station_stats.loc['rlat'][v]
+            rlon = station_stats.loc['rlon'][v]
 
-            if racmo_tilefrac.sel(rlon=lon, rlat=lat).max('time').values[0] > tilefrac_threshold:
+            if racmo_tilefrac.sel(rlon=rlon, rlat=rlat).max('time').values[0] > tilefrac_threshold:
 
                 station_stats.drop(columns=v,inplace=True)
 
-            print(len(station_stats.columns) + ' stations found in ' + tilefrac)
+        print(str(len(station_stats.columns)) + ' stations found in ' + tilefrac)
 
         station_stats.to_csv(in_situ_data_directory_year_calculated + 'station_'+tilefrac + '_' + year + '.csv')
 

@@ -32,11 +32,11 @@ datadir_racmo = '/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT
 
 year = str(2001)
 
-variable = 'tilefrac1'
+variable = 'tilefrac9'
 
-ds = xr.open_dataset('/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6.DD.nc')
+ds = xr.open_dataset('/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/2001/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
 
-racmo_variable = ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).mean(dim='time').squeeze()
+racmo_variable = ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=0).squeeze()
 
 
 rlon = ds.rlon.values
@@ -59,6 +59,6 @@ plt.colorbar(result, orientation='horizontal', label='T2m [\N{DEGREE SIGN}C]', e
 
 ax.set_title('Yearly mean T2m (2001)', size='xx-large')
 
-plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'_arc.jpeg',dpi=400)
+plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'_arc.jpeg', dpi=400)
 
 print('')
