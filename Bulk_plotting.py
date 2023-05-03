@@ -32,7 +32,6 @@ Snowdepth = True
 Surface_temp = False
 Precipitation = False
 
-
 """plotting control"""
 
 """Data type"""
@@ -41,15 +40,21 @@ no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
-norway_scatter = True
-alaska_scatter = True
-canada_scatter = True
-syberia_scatter = True
-flat_europe_scatter = True
+norway_scatter = False
+alaska_scatter = False
+canada_scatter = False
+syberia_scatter = False
+flat_europe_scatter = False
 
 """Map showing the study areas"""
 
-area_map = True
+
+"""Only map stations in tile with certain tilefraction"""
+
+tilefractionplotting = True
+tilefrac = 'tilefrac7'
+
+area_map = False
 
 """File names"""
 
@@ -113,10 +118,14 @@ if Precipitation:
     racmo_variable = 'pr'
     savename_suffix = 'precipitation'
 
-
+if tilefractionplotting:
+    savename_suffix = savename_suffix + '_' + tilefrac
 def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
 
-    limits = [230, 320]
+    if Snowdepth:
+        limits = [0, 150]
+    if Surface_temp:
+        limits = [230, 330]
 
     """plot scatter heatmap day of year"""
 
@@ -141,12 +150,12 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         racmo = racmo.values.flatten('F')
 
         in_situ_nan = [not bool for bool in np.isnan(in_situ)]
-        racmo = racmo[in_situ_nan]
+        if not Snowdepth:
+            racmo = racmo[in_situ_nan]
         if Snowdepth:
             racmo = racmo[in_situ_nan]*100
         in_situ = in_situ[in_situ_nan]
 
-        """Combine two masks to only be true when both instances are true and apply to data"""
 
         RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
         try:
@@ -203,7 +212,6 @@ for _, year in enumerate(years):
 
     racmo_arctic_data_directory_year = racmo_arctic_data_directory + racmo_variable +'/'+ year
 
-
     """Import area specifications"""
 
     station_arctic_domain = pd.read_csv(in_situ_data_directory_year + '/station_in_arctic_domain_' + year + '.csv',
@@ -219,6 +227,10 @@ for _, year in enumerate(years):
         in_situ_data_directory_year + 'stations_in_alaska_' + year + '.csv', index_col=0)
     station_stats_norway = pd.read_csv(
         in_situ_data_directory_year + 'stations_in_norway_' + year + '.csv', index_col=0)
+
+    if tilefractionplotting:
+        station_arctic_domain = pd.read_csv(
+            in_situ_data_directory_year + 'station_'+tilefrac + '_' + year + '.csv', index_col=0)
 
     """Snowheight scatter plots"""
 
