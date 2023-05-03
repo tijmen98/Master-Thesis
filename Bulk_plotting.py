@@ -52,7 +52,7 @@ flat_europe_scatter = False
 """Only map stations in tile with certain tilefraction"""
 
 tilefractionplotting = True
-tilefrac = 'tilefrac7'
+tilefrac = 'tilefrac9'
 
 area_map = False
 
@@ -123,7 +123,7 @@ if tilefractionplotting:
 def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_directory, save_name):
 
     if Snowdepth:
-        limits = [0, 150]
+        limits = [-1, 150]
     if Surface_temp:
         limits = [230, 330]
 
@@ -156,12 +156,15 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
             racmo = racmo[in_situ_nan]*100
         in_situ = in_situ[in_situ_nan]
 
+        def f(B, x):
+            return B[0]*x + B[1]
+
+        linear = scipy.odr.Model(f)
+        odrdata = scipy.odr.Data(in_situ, racmo)
+        odr = scipy.odr.ODR(odrdata, linear, beta0=[0.5, 0])
+        output = odr.run()
 
         RMSE = np.sqrt(np.mean(((racmo - in_situ) ** 2)))
-        try:
-            regres = scipy.stats.linregress(in_situ, racmo)
-        except:
-            regres = np.nan
 
         bins = np.round((len(in_situ)/1000)*4,0).astype(int)
         if bins < 15:
@@ -178,7 +181,7 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         axs[xindex, yindex].set_ylabel('Racmo snowheight [cm]')
         axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), np.arange(limits[0], limits[1]), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
-        try: axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), regres.intercept + regres.slope*np.arange(limits[0], limits[1]), color='red',
+        try: axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), output.beta[1] + output.beta[0]*np.arange(limits[0], limits[1]), color='red',
                                       linestyle=(0, (3, 3)), zorder=10, alpha=0.5)
         except: None
         axs[xindex, yindex].set_xlim(limits[0], limits[1])
@@ -188,13 +191,13 @@ def monthly_scatter(stations, year, racmo_directory, in_situ_directory, save_dir
         axs[xindex, yindex].set_yticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
         axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[1]-30, limits[0]+5*((limits[1]-limits[0])/20)))
         try:
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(regres.slope, 3))), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
         except:
             axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
         try:
             axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
         except:
-            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('CC: none'), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
         axs[xindex, yindex].annotate(('N = '+str(len(in_situ))), xy=(limits[1]-30, limits[0]+2*((limits[1]-limits[0])/20)))
 
     plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
