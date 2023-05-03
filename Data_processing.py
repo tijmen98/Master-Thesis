@@ -44,18 +44,20 @@ tilefrac_threshold = 0
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
-tilefrac_select = True
+tilefrac_select = False
 calc_stationdata = False              #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
+monthly_data_racmo_only = True
 select_stations_area = False
 monthly_statistics = False
 racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
 monthly_variable_difference = False
+albedo_calculations = False
 
 """File names"""
 
@@ -63,10 +65,10 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 """Variable control"""
 
-Snowdepth = True
+Snowdepth = False
 Surface_temp = False
 Precipitation = False
-
+Albedo = True
 
 in_situ_variable = ''
 in_situ_savedir = 'surface_temperature'
@@ -87,6 +89,7 @@ mask_directory = datadir+'Mask/'
 remapdir = datadir+'Remap/'
 snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
+modis_data_directory = datadir+'MODIS/'
 
 """Bounding boxes for location extraction"""
 
@@ -123,6 +126,12 @@ if Precipitation:
     in_situ_variable = 'accumulated_precipitation'
     racmo_variable = 'pr'
     racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
+if Albedo:
+    in_situ_variable = 'snow_depth'
+    racmo_variable = 'albcsb'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
 
 if tilefrac_select:
 
@@ -580,6 +589,94 @@ for _ , year in enumerate(years):
 
         snow_cover_measure_acc.to_netcdf(snow_cover_analysis_dir + year + '/measure_acc_season.nc')
         snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_acc_season.nc')
+
+    if monthly_data_racmo_only:
+
+        print("Test: saving racmo monthly files, month:")
+
+        racmo_24_arc_variable = xr.open_dataset(racmo_arctic_data_directory + racmo_filename)
+        station_stats = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
+
+        rlats = station_stats.loc['rlat']
+        rlons = station_stats.loc['rlon']
+
+        for month in months:
+
+            if len(racmo_24_arc_variable.time.values) < 364:
+                print(
+                    'year ' + year + ' is not completely included in the racmo dataset, please select different dataset.')
+                break
+
+            print('Month ' + str(month))
+
+            start_date = pd.to_datetime(f'{year}-{month}-01')
+            end_date = pd.to_datetime(f'{year}-{month}-{pd.Period(start_date, freq="M").days_in_month}')
+
+            """get data for given month"""
+            month_in_situ = pd.read_csv(in_situ_data_directory_year_calculated+'snow_depth/month_'+str(month)+'/stationdata.csv', index_col=0)
+
+            month_racmo = racmo_24_arc_variable.sel(time=slice(start_date, end_date)).squeeze()[racmo_variable]
+            month_racmo_per_station = pd.DataFrame(index=month_in_situ.index, columns=station_stats.columns)
+
+            import matplotlib.pyplot as plt
+
+            plt.contourf(month_racmo.isel(time=0))
+            plt.colorbar()
+
+            for i, v in enumerate(station_stats.columns):
+                month_racmo_per_station[v] = month_racmo.sel(rlat=station_stats.loc['rlat', v],
+                                                             rlon=station_stats.loc['rlon', v])
+
+
+            """Check for directory to exist"""
+
+            monthdir_racmo = racmo_arctic_data_directory + racmo_variable + '/' + year + '/month_' + str(month)
+            os.makedirs(monthdir_racmo, exist_ok=True)
+            month_racmo_per_station.to_csv(monthdir_racmo + '/stationdata.csv')
+
+    if albedo_calculations:
+
+        print('Extracting modis albedo data at station locations per month')
+
+        modis = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'.nc')
+        station_stats = pd.read_csv(
+            in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
+
+        for month in months:
+
+            if len(modis.time.values) < 364:
+                print(
+                    'year ' + year + ' is not completely included in the modis dataset, please select different dataset.')
+                break
+
+            print('Month ' + str(month))
+
+            start_date = pd.to_datetime(f'{year}-{month}-01')
+            end_date = pd.to_datetime(f'{year}-{month}-{pd.Period(start_date, freq="M").days_in_month}')
+
+            """get data for given month"""
+            month_in_situ = pd.read_csv(
+                in_situ_data_directory_year_calculated + 'snow_depth/month_' + str(month) + '/stationdata.csv',
+                index_col=0)
+
+            month_modis = modis.sel(time=slice(start_date, end_date))
+            month_modis_per_station = pd.DataFrame(index=month_in_situ.index, columns=station_stats.columns)
+
+            for i, v in enumerate(station_stats.columns):
+                coord = [station_stats.loc['latitude', v], station_stats.loc['longitude', v]]
+                coordarray = (abs(month_modis['lon'].astype(float)-float(coord[1])) + abs(month_modis['lat'].astype(float)-float(coord[0])))
+                modis_index = np.where(coordarray == np.min(coordarray))
+
+                month_modis_per_station[v] = month_modis['Albedo'].isel(rlat=modis_index[0],
+                                                                        rlon=modis_index[1]).squeeze().values
+
+            """Check for directory to exist"""
+
+            monthdir_modis = modis_data_directory + year + '/month_' + str(month)
+            os.makedirs(monthdir_modis, exist_ok=True)
+            month_modis_per_station.to_csv(monthdir_modis + '/stationdata.csv')
+
 
 
 print('All years done')
