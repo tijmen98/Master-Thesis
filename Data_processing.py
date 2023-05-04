@@ -67,8 +67,8 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 Snowdepth = False
 Surface_temp = False
-Precipitation = False
-Albedo = True
+Precipitation = True
+Albedo = False
 
 in_situ_variable = ''
 in_situ_savedir = 'surface_temperature'
@@ -622,10 +622,6 @@ for _ , year in enumerate(years):
             for i, v in enumerate(station_stats.columns):
                 month_racmo_per_station[v] = month_racmo.sel(rlat=station_stats.loc['rlat', v],
                                                              rlon=station_stats.loc['rlon', v])
-
-                print(month_racmo_per_station[v])
-
-
 
             """Check for directory to exist"""
 

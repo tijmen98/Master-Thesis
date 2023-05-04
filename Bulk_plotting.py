@@ -23,7 +23,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -41,18 +41,18 @@ no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
-norway_scatter = True
-alaska_scatter = True
-canada_scatter = True
-syberia_scatter = True
-flat_europe_scatter = True
+norway_scatter = False
+alaska_scatter = False
+canada_scatter = False
+syberia_scatter = False
+flat_europe_scatter = False
 
 """Map showing the study areas"""
 
 
 """Only map stations in tile with certain tilefraction"""
 
-tilefractionplotting = False
+tilefractionplotting = True
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -98,33 +98,34 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 if Snowdepth:
     print('Variable: Snowdepth')
-
+    variable = 'Snowdepth'
     in_situ_variable = 'snow_depth'
     racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'sndp'
-    savename_suffix = 'snowdepth'
+    savename_suffix = '_snowdepth'
 
 if Surface_temp:
     print('Variable: Surface temperature')
-
+    variable = 'Surface_temperature'
     in_situ_variable = 'air_temperature'
     racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'tas'
-    savename_suffix = 'surface_temperature'
+    savename_suffix = '_surface_temperature'
 
 if Precipitation:
     print('Variable: Precipitation')
-
+    variable = 'Precipitation'
     in_situ_variable = 'accumulated_precipitation'
     racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'pr'
-    savename_suffix = 'precipitation'
+    savename_suffix = '_precipitation'
 
 if Albedo:
     print('Variable: Albedo')
+    variable = 'Clear_sky_albedo'
     racmo_filename = 'NC_DEFAULT/albcsb.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
     racmo_variable = 'albcsb'
-    savename_suffix = 'Albedo'
+    savename_suffix = '_Albedo'
 
 
 
@@ -132,12 +133,21 @@ if tilefractionplotting:
     savename_suffix = savename_suffix + '_' + tilefrac
 def monthly_scatter(stations, year, var1_directory, var2_directory, save_directory, save_name):
 
+    """Define limits per variable"""
+    if Precipitation:
+        limits = [0,100]
     if Snowdepth:
         limits = [-1, 150]
     if Surface_temp:
         limits = [230, 330]
     if Albedo:
         limits = [0, 1]
+
+    """Define labels per variable"""
+
+    xlabel = 'Modis' + variable
+    ylabel = 'Racmo' + variable
+
 
     """plot scatter heatmap day of year"""
 
@@ -161,8 +171,14 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         var2 = var2.values.flatten('F')
         var1 = var1.values.flatten('F')
 
+        test = np.isnan(var2)
+
+        if Albedo:
+            var2[var2 == 0] = np.nan
+
         var2_nan = [not bool for bool in np.isnan(var2)]
-        if var2_nan.count(False) == len(var2_nan):
+
+        if var2_nan.count(True) == 0:
             continue
 
         if not Snowdepth:
@@ -171,15 +187,17 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
             var1 = var1[var2_nan]*100
         var2 = var2[var2_nan]
 
+
+
         def f(B, x):
             return B[0]*x + B[1]
 
         linear = scipy.odr.Model(f)
-        odrdata = scipy.odr.Data(var1, var2)
+        odrdata = scipy.odr.Data(var2, var1)
         odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
         output = odr.run()
-
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
+        bias = np.mean(var1-var2)
 
         bins = np.round((len(var2)/1000)*4, 0).astype(int)
         if bins < 15:
@@ -192,8 +210,8 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
         axs[xindex, yindex].scatter(var2, var1, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
         axs[xindex, yindex].set_title(month_names[month])
-        axs[xindex, yindex].set_xlabel('var2 snowheight [cm]')
-        axs[xindex, yindex].set_ylabel('var1 snowheight [cm]')
+        axs[xindex, yindex].set_xlabel(xlabel)
+        axs[xindex, yindex].set_ylabel(ylabel)
         axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), np.linspace(limits[0], limits[1], 10), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
         axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10), color='red',
@@ -203,6 +221,9 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         axs[xindex, yindex].set_aspect(1)
         axs[xindex, yindex].set_xticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
         axs[xindex, yindex].set_yticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
+
+        """Add statistics"""
+
         axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
         try:
             axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
@@ -213,8 +234,11 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         except:
             axs[xindex, yindex].annotate(('CC: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[0]+0.6*limits[1], limits[0]+0.20*limits[1]))
-
-    plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
+        axs[xindex, yindex].annotate('Bias = ' + str(np.round(bias, 3)), xy=(limits[0] + 0.6 * limits[1], limits[0] + 0.15 * limits[1]))
+    figure_save_directory = save_directory + '/' + year + '/' + variable + '/'
+    os.makedirs(figure_save_directory, exist_ok=True)
+    figure_name = save_name + '_' + year + '.png'
+    plt.savefig(figure_save_directory + figure_name, dpi=800)
 
 for _, year in enumerate(years):
     year = str(year)
