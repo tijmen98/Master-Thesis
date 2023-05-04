@@ -619,14 +619,9 @@ for _ , year in enumerate(years):
             month_racmo = racmo_24_arc_variable.sel(time=slice(start_date, end_date)).squeeze()[racmo_variable]
             month_racmo_per_station = pd.DataFrame(index=month_in_situ.index, columns=station_stats.columns)
 
-            import matplotlib.pyplot as plt
-
-            plt.contourf(month_racmo.isel(time=0))
-            plt.colorbar()
-
             for i, v in enumerate(station_stats.columns):
-                month_racmo_per_station[v] = month_racmo.sel(rlat=station_stats.loc['rlat', v],
-                                                             rlon=station_stats.loc['rlon', v])
+                month_racmo_per_station[v] = month_racmo[racmo_variable].sel(rlat=station_stats.loc['rlat', v],
+                                                             rlon=station_stats.loc['rlon', v].squeeze().values)
 
 
             """Check for directory to exist"""
