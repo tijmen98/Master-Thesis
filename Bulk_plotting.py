@@ -41,18 +41,18 @@ no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
-norway_scatter = False
-alaska_scatter = False
-canada_scatter = False
-syberia_scatter = False
-flat_europe_scatter = False
+norway_scatter = True
+alaska_scatter = True
+canada_scatter = True
+syberia_scatter = True
+flat_europe_scatter = True
 
 """Map showing the study areas"""
 
 
 """Only map stations in tile with certain tilefraction"""
 
-tilefractionplotting = True
+tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -137,7 +137,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
     if Surface_temp:
         limits = [230, 330]
     if Albedo:
-        limits = [0,1]
+        limits = [0, 1]
 
     """plot scatter heatmap day of year"""
 
@@ -162,8 +162,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         var1 = var1.values.flatten('F')
 
         var2_nan = [not bool for bool in np.isnan(var2)]
-        print(var2_nan.count(True))
-        if var2_nan.count(True) == len(var2_nan):
+        if var2_nan.count(False) == len(var2_nan):
             continue
 
         if not Snowdepth:
@@ -177,7 +176,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
         linear = scipy.odr.Model(f)
         odrdata = scipy.odr.Data(var1, var2)
-        odr = scipy.odr.ODR(odrdata, linear, beta0=[0.5, 0])
+        odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
         output = odr.run()
 
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
@@ -193,28 +192,27 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
         axs[xindex, yindex].scatter(var2, var1, c=c, s=1, cmap=plt.cm.RdYlBu_r, norm=mpl.colors.LogNorm())
         axs[xindex, yindex].set_title(month_names[month])
-        axs[xindex, yindex].set_xlabel('In-situ snowheight [cm]')
+        axs[xindex, yindex].set_xlabel('var2 snowheight [cm]')
         axs[xindex, yindex].set_ylabel('var1 snowheight [cm]')
-        axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), np.arange(limits[0], limits[1]), color='black', linestyle=(0, (3, 3)), zorder=10,
+        axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), np.linspace(limits[0], limits[1], 10), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
-        try: axs[xindex, yindex].plot(np.arange(limits[0], limits[1]), output.beta[1] + output.beta[0]*np.arange(limits[0], limits[1]), color='red',
-                                      linestyle=(0, (3, 3)), zorder=10, alpha=0.5)
-        except: None
+        axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10), color='red',
+                                    linestyle=(0, (3, 3)), zorder=20, alpha=0.5)
         axs[xindex, yindex].set_xlim(limits[0], limits[1])
         axs[xindex, yindex].set_ylim(limits[0], limits[1])
         axs[xindex, yindex].set_aspect(1)
         axs[xindex, yindex].set_xticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
         axs[xindex, yindex].set_yticks(np.arange(limits[0], limits[1], (limits[1]-limits[0]) / 5))
-        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[1]-30, limits[0]+5*((limits[1]-limits[0])/20)))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
         try:
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         except:
-            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[1]-30, limits[0]+4*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         try:
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         except:
-            axs[xindex, yindex].annotate(('CC: none'), xy=(limits[1]-30, limits[0]+3*((limits[1]-limits[0])/20)))
-        axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[1]-30, limits[0]+2*((limits[1]-limits[0])/20)))
+            axs[xindex, yindex].annotate(('CC: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
+        axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[0]+0.6*limits[1], limits[0]+0.20*limits[1]))
 
     plt.savefig(save_directory + '/' + year + '/'+save_name+'_' + year + '.png', dpi=800)
 

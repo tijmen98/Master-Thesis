@@ -620,8 +620,11 @@ for _ , year in enumerate(years):
             month_racmo_per_station = pd.DataFrame(index=month_in_situ.index, columns=station_stats.columns)
 
             for i, v in enumerate(station_stats.columns):
-                month_racmo_per_station[v] = month_racmo[racmo_variable].sel(rlat=station_stats.loc['rlat', v],
-                                                             rlon=station_stats.loc['rlon', v].squeeze().values)
+                month_racmo_per_station[v] = month_racmo.sel(rlat=station_stats.loc['rlat', v],
+                                                             rlon=station_stats.loc['rlon', v])
+
+                print(month_racmo_per_station[v])
+
 
 
             """Check for directory to exist"""
