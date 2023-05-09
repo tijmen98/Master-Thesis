@@ -19,6 +19,7 @@ import datetime
 import xarray as xr
 import statistics
 from shapely.geometry import Polygon, Point
+import matplotlib.pyplot as plt
 
 import geopandas as gpd
 import math
@@ -50,7 +51,7 @@ interpolate_stationdata = False
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
 monthly_data_test = False
-monthly_data_racmo_only = True
+monthly_data_racmo_only = False
 select_stations_area = False
 monthly_statistics = False
 racmo_snowextend = False
@@ -58,6 +59,7 @@ combine_snow_extend = False
 snow_extend_statistics = False
 monthly_variable_difference = False
 albedo_calculations = False
+mask_albedo = True
 
 """File names"""
 
@@ -633,7 +635,7 @@ for _ , year in enumerate(years):
 
         print('Extracting modis albedo data at station locations per month')
 
-        modis = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'.nc')
+        modis = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
@@ -670,6 +672,26 @@ for _ , year in enumerate(years):
             monthdir_modis = modis_data_directory + year + '/month_' + str(month)
             os.makedirs(monthdir_modis, exist_ok=True)
             month_modis_per_station.to_csv(monthdir_modis + '/stationdata.csv')
+
+    if mask_albedo:
+
+        print('Masking albedo for full snow cover tiles')
+
+        modis_albedo = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')['Albedo']
+        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/albcsb.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+            time=slice(year + '-01-01', year + '-12-31'))['albcsb']
+
+        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac5.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+            time=slice(year + '-01-01', year + '-12-31'))['tilefrac5']
+        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+            time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
+
+        modis_albedo_masked = modis_albedo.where(((tilefrac5 + tilefrac7) == 1))
+        racmo_albedo_masked = racmo_albedo.where(((tilefrac5 + tilefrac7) == 1))
+
+        modis_albedo_masked.to_netcdf(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG_masked.nc')
+        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory + 'albcsb/albcsb_'+year+'_masked.nc')
+
 
 
 
