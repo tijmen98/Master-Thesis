@@ -8,7 +8,8 @@ Created on Mon Mar 20 11:37:20 2023
 
 """t2m plot arctic domain"""
 
-
+laptop = True
+desktop = False
 
 import os
 import numpy as np
@@ -25,40 +26,45 @@ import Thesis_Functions.plotting as plotting
 
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
+year = str(2002)
+time = 150
+variable = 'albcsb'
 
-datadir_racmo = '/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/NC_DEFAULT/'
+if laptop:
+    print('Directory structure: laptop')
+    datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
+if desktop:
+    print('Directory structure: desktop')
+    datadir = "E:/Master-Thesis/Data/"
 
+racmo_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
+modis_ds = xr.open_dataset(datadir+'MODIS/Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')
+racmo_albedo = racmo_ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=time).squeeze()
+modis_albedo = modis_ds['Albedo'].isel(time=time)
 
+rlon = racmo_ds.rlon.values
+rlat = racmo_ds.rlat.values
 
-year = str(2001)
+plt.figure(figsize=(15, 5), dpi=400)
 
-variable = 'tilefrac9'
-
-ds = xr.open_dataset('/Volumes/Tijmen/Master-Thesis/Data/RACMO_2.4/PXARC11/2001/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
-
-racmo_variable = ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=0).squeeze()
-
-
-rlon = ds.rlon.values
-rlat = ds.rlat.values
-
-plt.figure(figsize=(10,10),dpi=400)
-
-ax = plt.subplot( projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
-data_crs = ccrs.RotatedPole(pole_longitude=ds.rotated_pole.grid_north_pole_longitude,
-                            pole_latitude=ds.rotated_pole.grid_north_pole_latitude)
+data_crs = ccrs.RotatedPole(pole_longitude=racmo_ds.rotated_pole.grid_north_pole_longitude,
+                            pole_latitude=racmo_ds.rotated_pole.grid_north_pole_latitude)
 levels=20
-norm = colors.Normalize(vmin=-25,vmax=10)
+norm = colors.Normalize(vmin=0, vmax=1)
 
-# plot data (converting flux to mm/day)
-result = ax.contourf(rlon, rlat, racmo_variable, levels = levels , norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
+ax1 = plt.subplot(1, 3, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+result1 = ax1.contourf(rlon, rlat, racmo_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
+ax1.coastlines(resolution='50m')
+plt.colorbar(result1, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
+ax1.set_title('Racmo clear sky albedo '+year, size='xx-large')
 
-ax.coastlines(resolution='50m')
+ax2 = plt.subplot(1, 3, 3, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+result2 = ax2.contourf(rlon, rlat, modis_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
+ax2.coastlines(resolution='50m')
+plt.colorbar(result2, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
+ax2.set_title('Modis clear sky albedo '+year, size='xx-large')
 
-plt.colorbar(result, orientation='horizontal', label='T2m [\N{DEGREE SIGN}C]', extend='both', fraction=0.046, pad=0.04)
 
-ax.set_title('Yearly mean T2m (2001)', size='xx-large')
-
-plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'_arc.jpeg', dpi=400)
+plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'test.jpeg', dpi=400)
 
 print('')

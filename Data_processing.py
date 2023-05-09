@@ -692,7 +692,4 @@ for _ , year in enumerate(years):
         modis_albedo_masked.to_netcdf(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG_masked.nc')
         racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory + 'albcsb/albcsb_'+year+'_masked.nc')
 
-
-
-
 print('All years done')
