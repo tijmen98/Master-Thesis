@@ -7,6 +7,8 @@ Created on Thu Jan 19 11:39:56 2023
 """
 
 import os
+
+import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
@@ -29,11 +31,17 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
+year = str(2002)
 
+t_start = year+'-01-01'
+t_stop = year+'-12-31'
+
+
+racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
 directory4_DEFAULT = racmo_arctic_data_directory + 'NC_DEFAULT/'
 directory4_MD = racmo_arctic_data_directory + 'NC_MD/'
-remapdir = datadir+'Remap/'
+remapdir = datadir+'remap/'
+modis_data_directory = datadir+'MODIS/'
 
 
 data.Create_Directory_Information(directory4_MD,'.')
@@ -52,58 +60,73 @@ RC4_ALB = data.Variable_Import(directory4_DEFAULT,'albcsb')
 RC4_TILE = data.Variable_Import(directory4_DEFAULT,'tilefrac8')
 RC4_TAS = data.Variable_Import(directory4_DEFAULT,'tas')
 
-t_start = '2002-01-01'
-t_stop = '2002-12-31'
+MODIS = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'.nc')
 
 #%%
 
 save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
 
-areas_int = [['Canada',66.11,-72.84,78],
-             ['Greenland-West',68.32,-52.1,59],
-             ['Greenland-East',71.15,-23.47,59],
-             ['Iceland',65.87,-22.01,60],
-             ['Svalbard',77.99,22.77,83]
+areas_int = [['SODANKYLA AWS GSN',67.368, 26.633, 0],
+             ['NORRBACK', 64.71, 17.72, 0]
              ]
 
-i = 1
-
+i = 0
 index = calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2],data.Variable_Import(directory4_MD, 'rlds'))
+modis_index =  calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2], MODIS)
 
-t_start = '2001-03-01'
-t_stop = '2001-08-30'
-
+modis_rlat = modis_index[1]
+modis_rlon = modis_index[0]
 rlat = index[1]
 rlon = index[0]
 
+"""Get data from in situ measurements"""
+def monthly_stationdata_import(directory):
+    yearly_df = pd.DataFrame()
 
-fig, axs = plt.subplots(2,3, figsize=(20,25))
+    for i in range(12):
+        path = (directory+'month_'+str(i+1)+'/stationdata.csv')
+        monthly_df = pd.read_csv(path, index_col=0)
+        yearly_df = pd.concat([yearly_df, monthly_df])
+
+    return(yearly_df)
+
+IN_SITU_TAS = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/air_temperature/')
+IN_SITU_SNWD = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/snow_depth/')
+IN_SITU_PREC = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/accumulated_precipitation/')
+
+fig, axs = plt.subplots(2,3, figsize=(40, 20))
 fig.suptitle(areas_int[i][0],fontsize=20)
 
 """RACMO 4 PLOTTING"""
 
-axs[0,0].plot(RC4_LW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='orange',label='Down',alpha=0.5)
-axs[0,0].plot(RC4_LW_U.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='blue',label='Up',alpha=0.5)
-axs[0,0].plot((RC4_LW_U+RC4_LW_D).isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='black',label='net',alpha=0.5)
+axs[0,0].plot(RC4_LW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='orange',label='Down')
+axs[0,0].plot(RC4_LW_U.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='blue',label='Up')
+axs[0,0].plot((RC4_LW_U+RC4_LW_D).isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='black',label='net')
 axs[0,0].set_title('Longwave')
 
 
 
-axs[1,0].plot(RC4_SW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='orange',label='Down')
-axs[1,0].plot(RC4_SW_U.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='blue',label='Up')
+axs[1,0].plot(RC4_SW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='orange',label='Down')
+axs[1,0].plot(RC4_SW_U.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='blue',label='Up')
 axs[1,0].plot((RC4_SW_U+RC4_SW_D).isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='black',label='net')
 axs[1,0].set_title('Shortwave')
 
 
-axs[0,1].plot(RC4_SNWD.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue',label='Snowheight')
-axs2=axs[0,1].twinx()
+axs[0,1].plot(RC4_SNWD.isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values*100, color='Blue', label='Racmo')
+axs[0,1].plot(IN_SITU_SNWD[areas_int[i][0]], color='red', label='in_situ')
 axs[0,1].set_title('Snowheight')
 
+axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='in_situ')
+axs[0,2].set_title('Precipitation')
 
-axs[1,1].plot(RC4_ALB.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='maroon',label='Albedo')
+
+axs[1,1].plot(RC4_ALB.isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='red', label='Racmo')
+axs[1,1].plot((abs(RC4_SW_U)/abs(RC4_SW_D)).isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values, 'red', linestyle=(0,(4,4)), label='SW_D/SW_U')
+axs[1,1].plot(MODIS['Albedo'].isel(rlon=modis_rlon, rlat=modis_rlat).sel(time=slice(t_start, t_stop)).values, color='Green', label='Modis')
 axs[1,1].set_title('Albedo')
 
-axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='grey',label='temperature')
+axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue',label='temperature')
+axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='in_situ')
 axs[1,2].set_title('Temperature')
 
 
@@ -113,22 +136,25 @@ for y in range(len(axs[0,:])):
     for x in range(len(axs[:,0])):
         ylims = axs[x,y].get_ylim()
         axs[x,y].vlines(areas_int[i][3],ylims[0],ylims[1],color='black',linestyle=(0,(3,3)))
+        axs[x,y].legend()
+
+os.makedirs(save_directory+'In_situ_TS/'+year+'/', exist_ok=True)
         
-plt.savefig(save_directory+areas_int[i][0]+'_energyflux_plot')
-
-ax = plt.axes(projection=ccrs.PlateCarree())
-ax.coastlines(alpha=0.5,resolution='50m')
+plt.savefig(save_directory+'In_situ_TS/'+year+'/'+areas_int[i][0]+'_TS_plot')
 
 
-ax.scatter(areas_int[0][2],areas_int[0][1],zorder=10,s=30,label=areas_int[0][0])
-ax.scatter(areas_int[1][2],areas_int[1][1],zorder=10,s=30,label=areas_int[1][0])
-ax.scatter(areas_int[2][2],areas_int[2][1],zorder=10,s=30,label=areas_int[2][0])
-ax.scatter(areas_int[3][2],areas_int[3][1],zorder=10,s=30,label=areas_int[3][0])
-ax.scatter(areas_int[4][2],areas_int[4][1],zorder=10,s=30,label=areas_int[4][0])
+if False == True:
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.coastlines(alpha=0.5,resolution='50m')
 
-plt.xlim((-180,180))
-plt.ylim((0,90))
-plt.legend()
-plt.show()     
-        
-#%%
+
+    for i in range(len(areas_int[0])):
+        ax.scatter(areas_int[i][2],areas_int[i][1],zorder=10,s=30,label=areas_int[i][0])
+
+
+    plt.xlim((-180,180))
+    plt.ylim((0,90))
+    plt.legend()
+    plt.show()
+
+    #%%
