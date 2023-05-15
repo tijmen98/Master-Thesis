@@ -31,21 +31,23 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-year = str(2002)
+year = str(2006)
 
 t_start = year+'-01-01'
 t_stop = year+'-12-31'
 
 
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
+racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001_new/'
 directory4_DEFAULT = racmo_arctic_data_directory + 'NC_DEFAULT/'
 directory4_MD = racmo_arctic_data_directory + 'NC_MD/'
 remapdir = datadir+'remap/'
 modis_data_directory = datadir+'MODIS/'
-
+aws_directory = datadir + 'Aws_data/'
 
 data.Create_Directory_Information(directory4_MD,'.')
 data.Create_Directory_Information(directory4_DEFAULT,'.')
+
+
 
 RC4_SENSIBLE = (data.Variable_Import(directory4_MD,'hfss'))
 RC4_LATENT = (data.Variable_Import(directory4_MD,'hfls'))
@@ -70,7 +72,17 @@ areas_int = [['SODANKYLA AWS GSN',67.368, 26.633, 0],
              ['NORRBACK', 64.71, 17.72, 0]
              ]
 
+
+
 i = 0
+AWS = pd.read_csv(aws_directory+'SODANKYLA.csv')
+AWS.rename(columns={'m': 'month', 'd': 'day'}, inplace=True)
+AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']])
+
+# Set the datetime column as the index of the DataFrame
+AWS = AWS.set_index('datetime')
+
+
 index = calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2],data.Variable_Import(directory4_MD, 'rlds'))
 modis_index =  calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2], MODIS)
 
@@ -90,9 +102,9 @@ def monthly_stationdata_import(directory):
 
     return(yearly_df)
 
-IN_SITU_TAS = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/air_temperature/')
-IN_SITU_SNWD = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/snow_depth/')
-IN_SITU_PREC = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/accumulated_precipitation/')
+#IN_SITU_TAS = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/air_temperature/')
+#IN_SITU_SNWD = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/snow_depth/')
+#IN_SITU_PREC = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/accumulated_precipitation/')
 
 fig, axs = plt.subplots(2,3, figsize=(40, 20))
 fig.suptitle(areas_int[i][0],fontsize=20)
@@ -113,10 +125,10 @@ axs[1,0].set_title('Shortwave')
 
 
 axs[0,1].plot(RC4_SNWD.isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values*100, color='Blue', label='Racmo')
-axs[0,1].plot(IN_SITU_SNWD[areas_int[i][0]], color='red', label='in_situ')
+#axs[0,1].plot(IN_SITU_SNWD[areas_int[i][0]], color='red', label='in_situ')
 axs[0,1].set_title('Snowheight')
 
-axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='in_situ')
+#axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='in_situ')
 axs[0,2].set_title('Precipitation')
 
 
@@ -126,7 +138,7 @@ axs[1,1].plot(MODIS['Albedo'].isel(rlon=modis_rlon, rlat=modis_rlat).sel(time=sl
 axs[1,1].set_title('Albedo')
 
 axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue',label='temperature')
-axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='in_situ')
+#axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='in_situ')
 axs[1,2].set_title('Temperature')
 
 
