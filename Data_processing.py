@@ -36,7 +36,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004, 2005, 2006, 2007]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
@@ -58,8 +58,8 @@ racmo_snowextend = False
 combine_snow_extend = False
 snow_extend_statistics = False
 monthly_variable_difference = False
-albedo_calculations = False
-mask_albedo = True
+albedo_calculations = True
+mask_albedo = False
 
 """File names"""
 
@@ -69,8 +69,8 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 Snowdepth = False
 Surface_temp = False
-Precipitation = True
-Albedo = False
+Precipitation = False
+Albedo = True
 
 in_situ_variable = ''
 in_situ_savedir = 'surface_temperature'
@@ -85,7 +85,7 @@ if desktop:
     datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
+racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001_new/'
 snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
 mask_directory = datadir+'Mask/'
 remapdir = datadir+'Remap/'
@@ -138,7 +138,6 @@ if Albedo:
 if tilefrac_select:
 
     tilefrac_filename = 'NC_DEFAULT/'+tilefrac+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-
 
 for _ , year in enumerate(years):
 
@@ -635,7 +634,7 @@ for _ , year in enumerate(years):
 
         print('Extracting modis albedo data at station locations per month')
 
-        modis = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')
+        modis = xr.open_dataset(modis_data_directory+year+'_RCG.nc')
         station_stats = pd.read_csv(
             in_situ_data_directory_year_calculated + 'station_in_arctic_domain_' + year + '.csv', index_col=0)
 
