@@ -48,6 +48,7 @@ for year in years:
     remapdir = datadir+'remap/'
     modis_data_directory = datadir+'MODIS/'
     aws_directory = datadir + 'Aws_data/'
+    in_situ_data_directory_year_calculated = datadir + 'In_situ_data/' + year + '/Calculated/'
 
     data.Create_Directory_Information(directory4_MD,'.')
     data.Create_Directory_Information(directory4_DEFAULT,'.')
@@ -68,6 +69,20 @@ for year in years:
     RC4_TAS = data.Variable_Import(directory4_DEFAULT,'tas')
 
     MODIS = xr.open_dataset(modis_data_directory+year+'_RCG.nc')
+
+    def monthly_stationdata_import(directory):
+        yearly_df = pd.DataFrame()
+
+        for i in range(12):
+            path = (directory+'month_'+str(i+1)+'/stationdata.csv')
+            monthly_df = pd.read_csv(path, index_col=0)
+            yearly_df = pd.concat([yearly_df, monthly_df])
+
+        return(yearly_df)
+
+    IN_SITU_TAS = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/air_temperature/')
+    IN_SITU_SNWD = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/snow_depth/')
+    IN_SITU_PREC = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/accumulated_precipitation/')
 
     #%%
 
@@ -96,21 +111,6 @@ for year in years:
     rlat = index[1]
     rlon = index[0]
 
-    """Get data from in situ measurements"""
-    def monthly_stationdata_import(directory):
-        yearly_df = pd.DataFrame()
-
-        for i in range(12):
-            path = (directory+'month_'+str(i+1)+'/stationdata.csv')
-            monthly_df = pd.read_csv(path, index_col=0)
-            yearly_df = pd.concat([yearly_df, monthly_df])
-
-        return(yearly_df)
-
-    #IN_SITU_TAS = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/air_temperature/')
-    #IN_SITU_SNWD = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/snow_depth/')
-    #IN_SITU_PREC = monthly_stationdata_import('/Volumes/Tijmen/Master-Thesis/Data/In_situ_data/'+year+'/Calculated/accumulated_precipitation/')
-
     fig, axs = plt.subplots(2,3, figsize=(40, 20))
     fig.suptitle(areas_int[i][0],fontsize=20)
 
@@ -130,20 +130,18 @@ for year in years:
 
 
     axs[0,1].plot(RC4_SNWD.isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values*100, color='Blue', label='Racmo')
-    #axs[0,1].plot(IN_SITU_SNWD[areas_int[i][0]], color='red', label='in_situ')
+    axs[0,1].plot(IN_SITU_SNWD[areas_int[i][0]], color='red', label='In_situ')
     axs[0,1].set_title('Snowheight')
 
-    #axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='in_situ')
+    axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='In_situ')
     axs[0,2].set_title('Precipitation')
 
-
-    axs[1,1].plot(RC4_ALB.isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='red', label='Racmo')
-    axs[1,1].plot((abs(RC4_SW_U)/abs(RC4_SW_D)).isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values, 'red', linestyle=(0,(4,4)), label='SW_D/SW_U')
+    axs[1,1].plot((abs(RC4_SW_U)/abs(RC4_SW_D)).isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values, 'Blue', linestyle=(0, (4, 4)), label='Racmo SW_U/SW_D')
     axs[1,1].plot(MODIS['Albedo'].isel(rlon=modis_rlon, rlat=modis_rlat).sel(time=slice(t_start, t_stop)).values, color='Green', label='Modis')
     axs[1,1].set_title('Albedo')
 
-    axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue',label='temperature')
-    #axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='in_situ')
+    axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue', label='Racmo')
+    axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='In_situ')
     axs[1,2].set_title('Temperature')
 
 
@@ -152,7 +150,7 @@ for year in years:
     for y in range(len(axs[0,:])):
         for x in range(len(axs[:,0])):
             ylims = axs[x,y].get_ylim()
-            axs[x,y].vlines(areas_int[i][3],ylims[0],ylims[1],color='black',linestyle=(0,(3,3)))
+            axs[x,y].vlines(areas_int[i][3], ylims[0],ylims[1],color='black',linestyle=(0,(3,3)))
             axs[x,y].legend()
 
     os.makedirs(save_directory+'In_situ_TS/'+year+'/', exist_ok=True)
