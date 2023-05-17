@@ -31,7 +31,7 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-years = [2002, 2003, 2004, 2005, 2006, 2007]
+years = [2005, 2006, 2007]
 
 for year in years:
     year = str(year)
