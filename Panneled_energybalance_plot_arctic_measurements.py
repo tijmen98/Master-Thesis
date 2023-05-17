@@ -31,7 +31,7 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-years = [2005, 2006, 2007]
+years = [2005]
 
 for year in years:
     year = str(year)
@@ -47,7 +47,7 @@ for year in years:
     directory4_MD = racmo_arctic_data_directory + 'NC_MD/'
     remapdir = datadir+'remap/'
     modis_data_directory = datadir+'MODIS/'
-    aws_directory = datadir + 'Aws_data/'
+    aws_directory = datadir + 'Aws_data/'+year+'/'
     in_situ_data_directory_year_calculated = datadir + 'In_situ_data/' + year + '/Calculated/'
 
     data.Create_Directory_Information(directory4_MD,'.')
@@ -73,8 +73,8 @@ for year in years:
     def monthly_stationdata_import(directory):
         yearly_df = pd.DataFrame()
 
-        for i in range(12):
-            path = (directory+'month_'+str(i+1)+'/stationdata.csv')
+        for index in range(12):
+            path = (directory+'month_'+str(index+1)+'/stationdata.csv')
             monthly_df = pd.read_csv(path, index_col=0)
             yearly_df = pd.concat([yearly_df, monthly_df])
 
@@ -88,20 +88,17 @@ for year in years:
 
     save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
 
-    areas_int = [['SODANKYLA AWS GSN',67.368, 26.633, 0],
+    areas_int = [['SODANKYLA AWS GSN', 67.368, 26.633, 0],
                  ['NORRBACK', 64.71, 17.72, 0]
                  ]
 
 
 
     i = 0
-    AWS = pd.read_csv(aws_directory+'SODANKYLA.csv')
-    AWS.rename(columns={'m': 'month', 'd': 'day'}, inplace=True)
-    AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']])
 
-    # Set the datetime column as the index of the DataFrame
-    AWS = AWS.set_index('datetime')
+    print(areas_int[i][0])
 
+    AWS = pd.read_csv(aws_directory+'SODANKYLA_daily.csv', index_col=0)
 
     index = calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2],data.Variable_Import(directory4_MD, 'rlds'))
     modis_index =  calculations.return_index_from_coordinates(areas_int[i][1],areas_int[i][2], MODIS)
@@ -122,10 +119,16 @@ for year in years:
     axs[0,0].set_title('Longwave')
 
 
+    for _, col in enumerate(['Global radiation (W/m2)', 'Reflected radiation (W/m2)']):
+        axs[1, 0].plot(AWS[col], label=col, color='red')
 
-    axs[1,0].plot(RC4_SW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='orange',label='Down')
+    axs[1, 0].plot(AWS['Global radiation (W/m2)'] + AWS['Reflected radiation (W/m2)'],
+             label='Net radiation (W/m2)', color='darkred')
+
+    axs[1,0].plot(RC4_SW_D.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='blue',label='Down')
     axs[1,0].plot(RC4_SW_U.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start, t_stop)).values,color='blue',label='Up')
-    axs[1,0].plot((RC4_SW_U+RC4_SW_D).isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='black',label='net')
+    axs[1,0].plot((RC4_SW_U+RC4_SW_D).isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='darkblue'
+                                                                                                             '',label='net')
     axs[1,0].set_title('Shortwave')
 
 
@@ -136,9 +139,12 @@ for year in years:
     axs[0,2].plot(IN_SITU_PREC[areas_int[i][0]], color='red', label='In_situ')
     axs[0,2].set_title('Precipitation')
 
-    axs[1,1].plot((abs(RC4_SW_U)/abs(RC4_SW_D)).isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values, 'Blue', linestyle=(0, (4, 4)), label='Racmo SW_U/SW_D')
-    axs[1,1].plot(MODIS['Albedo'].isel(rlon=modis_rlon, rlat=modis_rlat).sel(time=slice(t_start, t_stop)).values, color='Green', label='Modis')
-    axs[1,1].set_title('Albedo')
+    axs[1, 1].plot((abs(RC4_SW_U)/abs(RC4_SW_D)).isel(rlon=rlon, rlat=rlat).sel(time=slice(t_start, t_stop)).values, color = 'Blue', label='Racmo')
+    axs[1, 1].plot(abs(AWS['Reflected radiation (W/m2)'])/abs(AWS['Global radiation (W/m2)']), color='red', label = 'In_situ')
+    axs[1, 1].plot(MODIS['Albedo'].isel(rlon=modis_rlon, rlat=modis_rlat).sel(time=slice(t_start, t_stop)).values, color='Green', label='Modis')
+    axs[1, 1].set_ylim(0, 1)
+    axs[1, 1].set_title('Albedo')
+
 
     axs[1,2].plot(RC4_TAS.isel(rlon=rlon,rlat=rlat).sel(time=slice(t_start,t_stop)).values,color='Blue', label='Racmo')
     axs[1,2].plot(IN_SITU_TAS[areas_int[i][0]], color='red', label='In_situ')
@@ -163,8 +169,8 @@ for year in years:
         ax.coastlines(alpha=0.5,resolution='50m')
 
 
-        for i in range(len(areas_int[0])):
-            ax.scatter(areas_int[i][2],areas_int[i][1],zorder=10,s=30,label=areas_int[i][0])
+        for index in range(len(areas_int[0])):
+            ax.scatter(areas_int[index][2],areas_int[index][1],zorder=10,s=30,label=areas_int[index][0])
 
 
         plt.xlim((-180,180))
