@@ -37,29 +37,29 @@ import Thesis_Functions.data as Data
 """Variables"""
 
 years = [2002, 2003, 2004, 2005, 2006, 2007]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
-months = [1,2,3,4,5,6,7,8,9,10,11,12]
+months = [1,2,3,4,5,6,7,8,9,10,11,12]                       #list of months to process
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
-tilefrac = 'tilefrac5'
-tilefrac_threshold = 0
+tilefrac = 'tilefrac5'                  #tilefraction over which calculations are done
+tilefrac_threshold = 0                  #threshold for tilefraction
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
-tilefrac_select = False
+tilefrac_select = False                 #select stations whithin a certain tilefraction
 calc_stationdata = False              #Extract station snowdepth data and save to csv per station
-interpolate_stationdata = False
+interpolate_stationdata = False         #Fill missing values
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_test = False
-monthly_data_racmo_only = False
-select_stations_area = False
-monthly_statistics = False
-racmo_snowextend = False
-combine_snow_extend = False
-snow_extend_statistics = False
-monthly_variable_difference = False
-albedo_calculations = True
-mask_albedo = False
+monthly_data_racmo_only = False     #extract monthly data at in_situ measurement locations in racmo only
+select_stations_area = False    #select stations that are in focus area
+monthly_statistics = False      #get monthly statistics (bias, mean, RMSE)
+racmo_snowextend = False        #get total snow covered tilefraction
+combine_snow_extend = False     #Combine snow extend netcdfs in one file
+snow_extend_statistics = False      #calculate length of melt and accumulation season
+albedo_extraction = False      #extract modis albedo at in_situ measurement locations
+mask_albedo = False       #select only tiles that are completely covered with snow
+aws_data_modification = False       #AWS data from finnland saved as daily mean
+aws_weather = True
 
 """File names"""
 
@@ -71,9 +71,6 @@ Snowdepth = False
 Surface_temp = False
 Precipitation = False
 Albedo = True
-
-in_situ_variable = ''
-in_situ_savedir = 'surface_temperature'
 
 """Directories"""
 
@@ -92,6 +89,7 @@ remapdir = datadir+'Remap/'
 snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 modis_data_directory = datadir+'MODIS/'
+aws_directory = datadir + 'Aws_data/'
 
 """Bounding boxes for location extraction"""
 
@@ -318,62 +316,8 @@ for _ , year in enumerate(years):
             in_situ_data_directory_year_calculated + 'stations_daily_'+in_situ_variable+'_no_nan_' + year + '.csv')
 
     """Station specific data to csv"""
-    
+
     if monthly_data:
-        
-        print("saving racmo and in-situ data as monthly files, month:")
-        
-        """In situ data"""
-        
-        stationarray = pd.read_csv(in_situ_data_directory_year_calculated+'stations_daily_'+in_situ_variable+'_'+year+'.csv',index_col=0)
-        racmo_24_arc_snowheight = xr.open_dataset(racmo_arctic_data_directory+racmo_filename).sel(time = slice(year+'-01-01',year+'-12-31'))[racmo_variable]
-        station_stats = pd.read_csv(in_situ_data_directory_year_calculated+'station_statistics_'+year+'.csv',index_col=0)
-        
-        startdates = pd.date_range(year+"-01-01", periods=12, freq="MS")
-        enddates = pd.date_range(year+"-01-01", periods=12, freq="M")  
-
-
-        
-        for month in months:
-            
-            if len(racmo_24_arc_snowheight.time.values) < 364:
-                print(racmo_24_arc_snowheight.time.values)
-                print('year '+year+' is not included in the racmo dataset, please select different dataset.')
-                break
-            
-            print(month+1)
-            
-            """get data for given month"""
-            
-            month_racmo = racmo_24_arc_snowheight.sel(time = slice(str(startdates[month]),str(enddates[month]-datetime.timedelta(days=1))))
-            month_in_situ = stationarray.loc[str(startdates[month]):str(enddates[month]-datetime.timedelta(days=1))]
-        
-            """Check for directory to exist"""
-            
-            monthdir_in_situ = in_situ_data_directory_year_calculated+'/month_'+str(month+1)
-            os.makedirs(monthdir_in_situ,exist_ok=True)
-        
-            monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month+1)
-            os.makedirs(monthdir_racmo,exist_ok=True)
-            
-            """Get racmo snowheight for same locations"""
-        
-            locdata = pd.DataFrame(index = month_in_situ.index,columns=month_in_situ.columns)        
-            
-            for i,v in enumerate(station_stats.columns):
-                lat = float(station_stats.loc['latitude',v])
-                lon = float(station_stats.loc['longitude',v])
-                
-                y,x = Calculations.return_index_from_coordinates(lat,lon,racmo_24_arc_snowheight)
-                
-                locdata[v]=month_racmo.sel(rlat=racmo_24_arc_snowheight['rlat'][x],rlon=racmo_24_arc_snowheight['rlon'][y]).values
-       
-            month_in_situ.to_csv(monthdir_in_situ+'/stationdata.csv')
-            locdata.to_csv(monthdir_racmo+'/stationdata.csv')
-
-    """Faster way to get monthly files from racmo per station"""
-
-    if monthly_data_test:
         
         print("Test: saving racmo and in-situ data as monthly files, month:")
         
@@ -630,7 +574,7 @@ for _ , year in enumerate(years):
             os.makedirs(monthdir_racmo, exist_ok=True)
             month_racmo_per_station.to_csv(monthdir_racmo + '/stationdata.csv')
 
-    if albedo_calculations:
+    if albedo_extraction:
 
         print('Extracting modis albedo data at station locations per month')
 
@@ -691,4 +635,56 @@ for _ , year in enumerate(years):
         modis_albedo_masked.to_netcdf(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG_masked.nc')
         racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory + 'albcsb/albcsb_'+year+'_masked.nc')
 
+    if aws_data_modification:
+
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
+
+        AWS = pd.read_csv(aws_directory + 'SODANKYLA.csv')
+        AWS.rename(columns={'m': 'month', 'd': 'day'}, inplace=True)
+        AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']])
+        AWS = AWS.set_index('datetime')
+
+        AWS_daily = pd.DataFrame(index=pd.date_range(t_start, t_stop), columns=AWS.columns[4::])
+
+
+        def hourly_to_daily(data):
+            AWS_year_num = pd.to_numeric(data, errors='coerce')
+            return (AWS_year_num.resample('D').mean())
+
+
+        for i, col in enumerate(AWS_daily.columns):
+            AWS_daily[col] = hourly_to_daily(AWS.loc[t_start: t_stop][col])
+
+        AWS_daily['Reflected radiation (W/m2)'] = AWS_daily['Reflected radiation (W/m2)'] * -1
+        os.makedirs(aws_directory + year + '/', exist_ok=True)
+        AWS_daily.to_csv(aws_directory + year + '/SODANKYLA_daily.csv')
+
+    if aws_weather:
+
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
+
+        AWS = pd.read_csv(aws_directory + 'SODANKYLA_WEATHER.csv')
+        AWS.rename(columns={'m': 'month', 'd': 'day'}, inplace=True)
+        AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']])
+        AWS = AWS.set_index('datetime')
+
+        AWS_daily = pd.DataFrame(index=np.sort(list(set(AWS.index))), columns=AWS.columns)
+
+        for index, date in enumerate(AWS_daily.index):
+
+            one_day_aws = AWS.loc[date,:]
+
+            if len(one_day_aws.index) == 11:
+
+                AWS_daily.loc[date, :] = one_day_aws
+                AWS_daily.loc[date, 'Minimum temperature (degC)'] = one_day_aws.loc[
+                    'Minimum temperature (degC)']
+                continue
+
+            AWS_daily.loc[one_day_aws.index[0], :] = one_day_aws.iloc[0, :]
+            AWS_daily.loc[one_day_aws.index[0], 'Minimum temperature (degC)'] = one_day_aws.iloc[1,:].loc['Minimum temperature (degC)']
+
+        AWS_daily.to_csv(aws_directory + 'SODANKYLA_WEATHER_daily.csv')
 print('All years done')
