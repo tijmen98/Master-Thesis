@@ -28,7 +28,8 @@ datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 year = str(2002)
 time = 150
-variable = 'albcsb'
+safevariable = 'ALBEDO'
+variable = 'Clear-sky_albedo'
 
 if laptop:
     print('Directory structure: laptop')
@@ -37,8 +38,8 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-racmo_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001/NC_DEFAULT/'+variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
-modis_ds = xr.open_dataset(datadir+'MODIS/Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')
+racmo_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_new/NC_MD/Clearsky_albedo_calculated.nc')
+modis_ds = xr.open_dataset(datadir+'MODIS/'+year+'_RCG.nc')
 racmo_albedo = racmo_ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=time).squeeze()
 modis_albedo = modis_ds['Albedo'].isel(time=time)
 
@@ -52,19 +53,19 @@ data_crs = ccrs.RotatedPole(pole_longitude=racmo_ds.rotated_pole.grid_north_pole
 levels=20
 norm = colors.Normalize(vmin=0, vmax=1)
 
-ax1 = plt.subplot(1, 3, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+ax1 = plt.subplot(1, 2, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
 result1 = ax1.contourf(rlon, rlat, racmo_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
 ax1.coastlines(resolution='50m')
 plt.colorbar(result1, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
 ax1.set_title('Racmo clear sky albedo '+year, size='xx-large')
 
-ax2 = plt.subplot(1, 3, 3, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+ax2 = plt.subplot(1, 2, 2, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
 result2 = ax2.contourf(rlon, rlat, modis_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
 ax2.coastlines(resolution='50m')
 plt.colorbar(result2, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
 ax2.set_title('Modis clear sky albedo '+year, size='xx-large')
 
 
-plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+variable+'test.jpeg', dpi=400)
+plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+safevariable+'test.jpeg', dpi=400)
 
 print('')

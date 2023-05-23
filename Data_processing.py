@@ -46,7 +46,7 @@ tilefrac_threshold = 0                  #threshold for tilefraction
 
 select_stations = False                 #Select stations that are in arctic domain
 tilefrac_select = False                 #select stations whithin a certain tilefraction
-calc_stationdata = False              #Extract station snowdepth data and save to csv per station
+calc_stationdata = True        #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Fill missing values
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
@@ -59,7 +59,8 @@ snow_extend_statistics = False      #calculate length of melt and accumulation s
 albedo_extraction = False      #extract modis albedo at in_situ measurement locations
 mask_albedo = False       #select only tiles that are completely covered with snow
 aws_data_modification = False       #AWS data from finnland saved as daily mean
-aws_weather = True
+aws_weather = False     #AWS weather data to yearly files
+racmo_clear_sky = False
 
 """File names"""
 
@@ -129,8 +130,8 @@ if Precipitation:
 
 if Albedo:
     in_situ_variable = 'snow_depth'
-    racmo_variable = 'albcsb'
-    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_variable = 'Clearsky_albedo_calculated'
+    racmo_filename = 'NC_MC/'+racmo_variable+'.nc'
 
 
 if tilefrac_select:
@@ -687,4 +688,28 @@ for _ , year in enumerate(years):
             AWS_daily.loc[one_day_aws.index[0], 'Minimum temperature (degC)'] = one_day_aws.iloc[1,:].loc['Minimum temperature (degC)']
 
         AWS_daily.to_csv(aws_directory + 'SODANKYLA_WEATHER_daily.csv')
+
+if racmo_clear_sky:
+    print('calculations for clear sky radiation racmo')
+
+    exampleds = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
+    down_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['rsdscs']
+    net_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/ssrc.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['ssrc']
+    up_shortwave = net_shortwave-down_shortwave
+
+    albedo = abs(up_shortwave)/abs(down_shortwave)
+
+    #Add metadata
+
+    albedo = albedo.to_dataset(name='Clear-sky_albedo')
+
+    albedo['rotated_pole'] = exampleds.rotated_pole
+    albedo['Clear-sky_albedo'].attrs['Standard name'] = 'Clear sky Albedo'
+    albedo['Clear-sky_albedo'].attrs['Units'] = 'W m-2'
+
+
+    albedo.to_netcdf(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc')
+    up_shortwave.to_netcdf(racmo_arctic_data_directory+'NC_MD/Shortwave_up.nc')
+
+
 print('All years done')
