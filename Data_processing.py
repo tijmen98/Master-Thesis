@@ -42,11 +42,12 @@ breakdate = '-07-01'                    #Split date between accumulation and mel
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
 tilefrac = 'tilefrac5'                  #tilefraction over which calculations are done
 tilefrac_threshold = 0                  #threshold for tilefraction
+moving_average_window = 3
 """Calculation control"""
 
 select_stations = False                 #Select stations that are in arctic domain
 tilefrac_select = False                 #select stations whithin a certain tilefraction
-calc_stationdata = True        #Extract station snowdepth data and save to csv per station
+calc_stationdata = False        #Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         #Fill missing values
 fill_nan = False                         #Interpolate
 monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
@@ -57,10 +58,10 @@ racmo_snowextend = False        #get total snow covered tilefraction
 combine_snow_extend = False     #Combine snow extend netcdfs in one file
 snow_extend_statistics = False      #calculate length of melt and accumulation season
 albedo_extraction = False      #extract modis albedo at in_situ measurement locations
-mask_albedo = False       #select only tiles that are completely covered with snow
+mask_albedo = True       #select only tiles that are completely covered with snow
 aws_data_modification = False       #AWS data from finnland saved as daily mean
 aws_weather = False     #AWS weather data to yearly files
-racmo_clear_sky = False
+racmo_clear_sky = False     #Calculate racmo clear sky albedo from clear sky radiative fluxes
 
 """File names"""
 
@@ -621,20 +622,33 @@ for _ , year in enumerate(years):
 
         print('Masking albedo for full snow cover tiles')
 
-        modis_albedo = xr.open_dataset(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG.nc')['Albedo']
-        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/albcsb.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
-            time=slice(year + '-01-01', year + '-12-31'))['albcsb']
-
         tilefrac5 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac5.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac5']
         tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
 
-        modis_albedo_masked = modis_albedo.where(((tilefrac5 + tilefrac7) == 1))
-        racmo_albedo_masked = racmo_albedo.where(((tilefrac5 + tilefrac7) == 1))
+        snowcover = (tilefrac5 + tilefrac7).squeeze().values
 
-        modis_albedo_masked.to_netcdf(modis_data_directory+'Albedo_WSA_shortwave_img_'+year+'_fixed_RCG_masked.nc')
-        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory + 'albcsb/albcsb_'+year+'_masked.nc')
+        del(tilefrac5)
+        del(tilefrac7)
+
+
+        modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
+        modis_albedo_rolmean = modis_albedo.rolling(time=moving_average_window, center=True).mean()
+        del(modis_albedo)
+        modis_albedo_masked = modis_albedo_rolmean.where(snowcover > 0.95)
+        del(modis_albedo_rolmean)
+        modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_masked.nc')
+        del(modis_albedo_masked)
+
+        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').sel(
+            time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
+        racmo_albedo_rolmean = racmo_albedo.rolling(time=moving_average_window, center=True).mean()
+        del(racmo_albedo)
+        racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover > 0.95)
+        del (racmo_albedo_rolmean)
+        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated_masked.nc')
+        del (racmo_albedo_masked)
 
     if aws_data_modification:
 

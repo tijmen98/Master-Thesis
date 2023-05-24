@@ -29,7 +29,7 @@ crs_racmo = CRS.from_proj4("-m 57.295779506 +proj=ob_tran +o_proj=latlon +o_lat_
 crs_stations = CRS.from_string("EPSG:4326")
 
 
-years = [2002]
+years = [2002, 2003, 2004, 2005, 2006, 2007]
 
 """Directories"""
 
@@ -51,11 +51,14 @@ rlon= tilefrac6.rlon.values
 rlat= tilefrac6.rlat.values
 
 albedo_racmo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc')
-bounds = np.linspace(0, 1, 20)
+bounds = np.linspace(0, 1, 19)
 norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256, extend='both')
 
 for year in years:
-    albedo_modis_year = xr.open_dataset(modis_data_directory + year+'_RCG.nc')
+
+    year = str(year)
+
+    albedo_modis_year = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
     albedo_racmo_year = albedo_racmo.sel(time=slice(year+'/01/01', year+'/12/31'))['Clear-sky_albedo']
 
     rlon = albedo_racmo_year.rlon.values
@@ -63,8 +66,8 @@ for year in years:
 
     for day in range(len(albedo_racmo_year['time'])):
 
-        albedo_racmo_day = albedo_racmo_year.isel(time=day)
-        albedo_modis_day = albedo_modis_year.isel(time=day)
+        albedo_racmo_day = albedo_racmo_year.isel(time=day).squeeze()
+        albedo_modis_day = albedo_modis_year.isel(time=day).squeeze()
 
         cmap = 'seismic'
         fig = plt.figure(figsize=(12, 10))
@@ -90,7 +93,7 @@ for year in years:
         cax_width = 0.01
         cax_height = axpos.height
         pos_cax = fig.add_axes([pos_x, pos_y, cax_width, cax_height])
-        plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Bias [cm]')
+        plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Albedo')
 
         axpos = ax2.get_position()
         pos_x = axpos.x0 + axpos.width + 0.01
@@ -98,14 +101,15 @@ for year in years:
         cax_width = 0.01
         cax_height = axpos.height
         pos_cax = fig.add_axes([pos_x, pos_y, cax_width, cax_height])
-        plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Bias [cm]')
+        plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='ALbedo')
 
-        fig.set_title('Albedo year:'+ year + 'day' +str(day), size='xx-large')
+        fig.suptitle('Albedo year: '+ year + ' day ' +str(day), size='xx-large')
 
-        plt.savefig(fig_save_directory+year+'/Albedomovie/'+str(day)+'_albedo_plot.png')
+        os.makedirs(fig_save_directory+year+'/Albedomovie/', exist_ok=True)
+        plt.savefig(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day)+'.png')
 
         plt.close(fig)
 
-        images.append(imageio.v3.imread(fig_save_directory+year+'/Albedomovie/'+str(day)+'_albedo_plot.png'))
+        images.append(imageio.v3.imread(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day)+'.png'))
 
 imageio.mimsave(fig_save_directory+'movie_albedo.gif', images)
