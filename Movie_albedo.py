@@ -29,7 +29,7 @@ crs_racmo = CRS.from_proj4("-m 57.295779506 +proj=ob_tran +o_proj=latlon +o_lat_
 crs_stations = CRS.from_string("EPSG:4326")
 
 
-years = [2002, 2003, 2004, 2005, 2006, 2007]
+years = [2002] #, 2003, 2004, 2005, 2006, 2007]
 
 """Directories"""
 
@@ -50,39 +50,64 @@ forest = forest.where(forest>0.4).squeeze()
 rlon= tilefrac6.rlon.values
 rlat= tilefrac6.rlat.values
 
-albedo_racmo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc')
 bounds = np.linspace(0, 1, 19)
 norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256, extend='both')
+
+albedo_racmo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc')
 
 for year in years:
 
     year = str(year)
 
-    albedo_modis_year = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
-    albedo_racmo_year = albedo_racmo.sel(time=slice(year+'/01/01', year+'/12/31'))['Clear-sky_albedo']
+    print('Making movie for year '+year)
+
+    albedo_modis_year = xr.open_dataset(modis_data_directory + year+'_RCG_masked.nc')['Albedo']
+    albedo_racmo_year = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked.nc')['Clear-sky_albedo']
 
     rlon = albedo_racmo_year.rlon.values
     rlat = albedo_racmo_year.rlat.values
 
-    for day in range(len(albedo_racmo_year['time'])):
+    for day in albedo_racmo_year['time'][0:10]:
 
-        albedo_racmo_day = albedo_racmo_year.isel(time=day).squeeze()
-        albedo_modis_day = albedo_modis_year.isel(time=day).squeeze()
+        albedo_racmo_day = albedo_racmo_year.sel(time=day).squeeze()
+        albedo_modis_day = albedo_modis_year.sel(time=day).squeeze()
 
         cmap = 'seismic'
         fig = plt.figure(figsize=(12, 10))
-        ax1 = fig.add_subplot(1, 2, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
-        ax2 = fig.add_subplot(1, 2, 2, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.))
+        ax1 = fig.add_subplot(1, 3, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+        ax2 = fig.add_subplot(1, 3, 2, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.))
+        ax3 = fig.add_subplot(1, 3, 3, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.))
 
         ax1.add_feature(cfeature.OCEAN)
         ax1.coastlines(resolution='50m')
         ax1.add_feature(cfeature.LAND)
 
+        ax2.add_feature(cfeature.OCEAN)
+        ax2.coastlines(resolution='50m')
+        ax2.add_feature(cfeature.LAND)
+
+        ax3.add_feature(cfeature.OCEAN)
+        ax3.coastlines(resolution='50m')
+        ax3.add_feature(cfeature.LAND)
+
         ax1.contourf(rlon, rlat, albedo_racmo_day, cmap=cmap, transform = ccrs.RotatedPole(pole_longitude=albedo_racmo.rotated_pole.grid_north_pole_longitude,
                                 pole_latitude=albedo_racmo.rotated_pole.grid_north_pole_latitude))
 
+        ax1.set_title('Racmo')
+
         ax2.contourf(rlon, rlat, albedo_modis_day, cmap=cmap, transform = ccrs.RotatedPole(pole_longitude=albedo_racmo.rotated_pole.grid_north_pole_longitude,
                                 pole_latitude=albedo_racmo.rotated_pole.grid_north_pole_latitude))
+
+        ax2.set_title('Modis')
+
+        racmo, modis = xr.align(albedo_racmo_day, albedo_modis_day, join='left')
+        difference = racmo-modis
+
+        ax3.contourf(rlon, rlat, difference, cmap=cmap,
+                     transform=ccrs.RotatedPole(pole_longitude=albedo_racmo.rotated_pole.grid_north_pole_longitude,
+                                                pole_latitude=albedo_racmo.rotated_pole.grid_north_pole_latitude))
+
+        ax3.set_title('Racmo - Modis')
 
         ax1.set_xlim(-3939996.3398490055, 4199452.516011998)
         ax1.set_ylim(-4171531.5955094383, 4399068.623679058)
@@ -103,13 +128,13 @@ for year in years:
         pos_cax = fig.add_axes([pos_x, pos_y, cax_width, cax_height])
         plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='ALbedo')
 
-        fig.suptitle('Albedo year: '+ year + ' day ' +str(day), size='xx-large')
+        fig.suptitle('Albedo year: '+ year + ' day ' +str(day.values), size='xx-large')
 
         os.makedirs(fig_save_directory+year+'/Albedomovie/', exist_ok=True)
-        plt.savefig(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day)+'.png')
+        plt.savefig(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day.values)+'.png')
 
         plt.close(fig)
 
-        images.append(imageio.v3.imread(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day)+'.png'))
+        images.append(imageio.v3.imread(fig_save_directory+year+'/Albedomovie/albedo_plot_'+str(day.values)+'.png'))
 
-imageio.mimsave(fig_save_directory+'movie_albedo.gif', images)
+    imageio.mimsave(fig_save_directory+'movie_albedo'+year+'.gif', images)

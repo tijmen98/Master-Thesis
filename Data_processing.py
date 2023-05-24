@@ -627,7 +627,7 @@ for _ , year in enumerate(years):
         tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
 
-        snowcover = (tilefrac5 + tilefrac7).squeeze().values
+        snowcover = tilefrac5 + tilefrac7
 
         del(tilefrac5)
         del(tilefrac7)
@@ -636,7 +636,7 @@ for _ , year in enumerate(years):
         modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
         modis_albedo_rolmean = modis_albedo.rolling(time=moving_average_window, center=True).mean()
         del(modis_albedo)
-        modis_albedo_masked = modis_albedo_rolmean.where(snowcover > 0.95)
+        modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values > 0.95)
         del(modis_albedo_rolmean)
         modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_masked.nc')
         del(modis_albedo_masked)
@@ -647,7 +647,8 @@ for _ , year in enumerate(years):
         del(racmo_albedo)
         racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover > 0.95)
         del (racmo_albedo_rolmean)
-        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated_masked.nc')
+        os.makedirs(racmo_arctic_data_directory+'NC_MD/'+year+'/', exist_ok=True)
+        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked.nc')
         del (racmo_albedo_masked)
 
     if aws_data_modification:
