@@ -12,6 +12,7 @@ import scipy
 import geopandas as gpd
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import xarray as xr
 
 if laptop:
     os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scripts')
@@ -23,21 +24,14 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004, 2005, 2006, 2007]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
-Snowdepth = False
-Surface_temp = False
-Precipitation = False
 Albedo = True
 
 """plotting control"""
-
-"""Data type"""
-
-no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
@@ -52,7 +46,7 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-tilefractionplotting = True
+tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -74,7 +68,7 @@ if desktop:
     datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir + 'In_situ_data/'
-racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001/'
+racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_new/NC_MD/'
 snow_cover_extend_measure_dir = datadir + 'Snow_cover_Measure/'
 mask_directory = datadir + 'Mask/'
 remapdir = datadir + 'Remap/'
@@ -96,50 +90,22 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 """Start of yearly calculations:"""
 
-if Snowdepth:
-    print('Variable: Snowdepth')
-    variable = 'Snowdepth'
-    in_situ_variable = 'snow_depth'
-    racmo_filename = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-    racmo_variable = 'sndp'
-    savename_suffix = '_snowdepth'
 
-if Surface_temp:
-    print('Variable: Surface temperature')
-    variable = 'Surface_temperature'
-    in_situ_variable = 'air_temperature'
-    racmo_filename = 'NC_DEFAULT/tas.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-    racmo_variable = 'tas'
-    savename_suffix = '_surface_temperature'
 
-if Precipitation:
-    print('Variable: Precipitation')
-    variable = 'Precipitation'
-    in_situ_variable = 'accumulated_precipitation'
-    racmo_filename = 'NC_DEFAULT/pr.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-    racmo_variable = 'pr'
-    savename_suffix = '_precipitation'
+print('Variable: Albedo')
+variable = 'Clear_sky_albedo'
+racmo_filename = 'Clearsky_albedo_calculated_masked.nc'
+savename_suffix = '_Albedo'
 
-if Albedo:
-    print('Variable: Albedo')
-    variable = 'Clear_sky_albedo'
-    racmo_filename = 'NC_DEFAULT/albcsb.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
-    racmo_variable = 'albcsb'
-    savename_suffix = '_Albedo'
 
 
 
 if tilefractionplotting:
     savename_suffix = savename_suffix + '_' + tilefrac
-def monthly_scatter(stations, year, var1_directory, var2_directory, save_directory, save_name):
+def monthly_scatter(stations, year, var1_year, var2_year, save_directory, save_name):
 
     """Define limits per variable"""
-    if Precipitation:
-        limits = [0,100]
-    if Snowdepth:
-        limits = [-1, 150]
-    if Surface_temp:
-        limits = [230, 330]
+
     if Albedo:
         limits = [0, 1]
 
@@ -155,6 +121,8 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     for month in range(12):
 
+        print(month_names[month])
+
         xindex = 0
         yindex = month
 
@@ -162,14 +130,14 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
             xindex = math.floor(month / 4)
             yindex = int(month - math.floor(month / 4) * 4)
 
-        monthdir_var2 = var2_directory + 'month_' + str(month + 1)
-        monthdir_var1 = var1_directory + 'month_' + str(month + 1)
+        start_date = pd.to_datetime(f'{year}-{month+1}-01')
+        end_date = pd.to_datetime(f'{year}-{month+1}-{pd.Period(start_date, freq="M").days_in_month}')
 
-        var2 = pd.read_csv(monthdir_var2 + '/stationdata.csv', index_col=0)[stations]
-        var1 = pd.read_csv(monthdir_var1 + '/stationdata.csv', index_col=0)[stations]
+        var1_month = var1_year.sel(time=slice(start_date, end_date))['Clear-sky_albedo'].squeeze().values
+        var2_month = var2_year.sel(time=slice(start_date, end_date))['Albedo'].squeeze().values
 
-        var2 = var2.values.flatten('F')
-        var1 = var1.values.flatten('F')
+        var1 = var1_month.flatten('F')
+        var2 = var2_month.flatten('F')
 
         test = np.isnan(var2)
 
@@ -181,21 +149,16 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         if var2_nan.count(True) == 0:
             continue
 
-        if not Snowdepth:
-            var1 = var1[var2_nan]
-        if Snowdepth:
-            var1 = var1[var2_nan]*100
+        var1 = var1[var2_nan]
         var2 = var2[var2_nan]
-
-
 
         def f(B, x):
             return B[0]*x + B[1]
 
-        linear = scipy.odr.Model(f)
-        odrdata = scipy.odr.Data(var2, var1)
-        odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
-        output = odr.run()
+        #linear = scipy.odr.Model(f)
+        #odrdata = scipy.odr.Data(var2, var1)
+        #odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
+        #output = odr.run()
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
@@ -214,8 +177,10 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         axs[xindex, yindex].set_ylabel(ylabel)
         axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), np.linspace(limits[0], limits[1], 10), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
-        axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10), color='red',
+        try: axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10), color='red',
                                     linestyle=(0, (3, 3)), zorder=20, alpha=0.5)
+        except:
+            None
         axs[xindex, yindex].set_xlim(limits[0], limits[1])
         axs[xindex, yindex].set_ylim(limits[0], limits[1])
         axs[xindex, yindex].set_aspect(1)
@@ -229,10 +194,6 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
             axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         except:
             axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
-        try:
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
-        except:
-            axs[xindex, yindex].annotate(('CC: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[0]+0.6*limits[1], limits[0]+0.20*limits[1]))
         axs[xindex, yindex].annotate('Bias = ' + str(np.round(bias, 3)), xy=(limits[0] + 0.6 * limits[1], limits[0] + 0.15 * limits[1]))
     figure_save_directory = save_directory + '/' + year + '/' + variable + '/'
@@ -247,24 +208,14 @@ for _, year in enumerate(years):
     """Year specific directories"""
     in_situ_data_directory_year = in_situ_data_directory + year + '/Calculated/'
 
-    if Snowdepth or Surface_temp or Precipitation:
-        in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/' + in_situ_variable + '/'
-        if no_nan_data:
-            in_situ_data_directory_year_calculated = in_situ_data_directory + year + '/Calculated/' + in_situ_variable + '_no_nan/'
-        racmo_arctic_data_directory_year = racmo_arctic_data_directory + racmo_variable + '/' + year + '/'
-
-        var1_data_directory = racmo_arctic_data_directory_year
-        var2_data_directory = in_situ_data_directory_year_calculated
-
     if Albedo:
-        var1_data_directory = racmo_arctic_data_directory + racmo_variable + '/' + year + '/'
-        var2_data_directory = modis_directory+year+'/'
+        var1_year = xr.open_dataset(racmo_arctic_data_directory + year + '/Clearsky_albedo_calculated_masked.nc')
+        var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked.nc')
 
     """Import area specifications"""
 
     station_arctic_domain = pd.read_csv(in_situ_data_directory_year + '/station_in_arctic_domain_' + year + '.csv',
                                 index_col=0)
-
     station_stats_canada = pd.read_csv(
         in_situ_data_directory_year + 'stations_in_canada_' + year + '.csv', index_col=0)
     station_stats_syberia = pd.read_csv(
@@ -277,40 +228,40 @@ for _, year in enumerate(years):
         in_situ_data_directory_year + 'stations_in_norway_' + year + '.csv', index_col=0)
 
     if tilefractionplotting:
-        station_arctic_domain = pd.read_csv(
-            in_situ_data_directory_year + 'station_'+tilefrac + '_' + year + '.csv', index_col=0)
+        #TODO
+        None
 
     """Snowheight scatter plots"""
 
     if arctic_domain_scatter:
 
-        monthly_scatter(station_arctic_domain.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_arctic_domain.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
 
     if norway_scatter:
 
-        monthly_scatter(station_stats_norway.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_stats_norway.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
 
     if alaska_scatter:
 
-        monthly_scatter(station_stats_alaska.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_stats_alaska.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
 
     if canada_scatter:
 
-        monthly_scatter(station_stats_canada.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_stats_canada.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
 
     if flat_europe_scatter:
 
-        monthly_scatter(station_stats_flat_europe.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_stats_flat_europe.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
 
     if syberia_scatter:
 
-        monthly_scatter(station_stats_syberia.columns.values, year, var1_data_directory,
-                        var2_data_directory, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)
+        monthly_scatter(station_stats_syberia.columns.values, year, var1_year,
+                        var2_year, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)
 
     """Snow extend scatter plots"""
 
