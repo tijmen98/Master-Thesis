@@ -102,7 +102,7 @@ savename_suffix = '_Albedo'
 
 if tilefractionplotting:
     savename_suffix = savename_suffix + '_' + tilefrac
-def monthly_scatter(stations, year, var1_year, var2_year, save_directory, save_name):
+def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """Define limits per variable"""
 
@@ -133,24 +133,34 @@ def monthly_scatter(stations, year, var1_year, var2_year, save_directory, save_n
         start_date = pd.to_datetime(f'{year}-{month+1}-01')
         end_date = pd.to_datetime(f'{year}-{month+1}-{pd.Period(start_date, freq="M").days_in_month}')
 
-        var1_month = var1_year.sel(time=slice(start_date, end_date))['Clear-sky_albedo'].squeeze().values
-        var2_month = var2_year.sel(time=slice(start_date, end_date))['Albedo'].squeeze().values
+        var1_month = var1_year.sel(time=slice(start_date, end_date))['Clear-sky_albedo'].squeeze()
+        var2_month = var2_year.sel(time=slice(start_date, end_date))['Albedo'].squeeze()
 
-        var1 = var1_month.flatten('F')
-        var2 = var2_month.flatten('F')
-
-        test = np.isnan(var2)
-
-        if Albedo:
-            var2[var2 == 0] = np.nan
+        var1 = var1_month.values.flatten('F')
+        var2 = var2_month.values.flatten('F')
 
         var2_nan = [not bool for bool in np.isnan(var2)]
-
         if var2_nan.count(True) == 0:
             continue
-
         var1 = var1[var2_nan]
         var2 = var2[var2_nan]
+
+        var1_nan = [not bool for bool in np.isnan(var1)]
+        if var1_nan.count(True) == 0:
+            continue
+        var1 = var1[var1_nan]
+        var2 = var2[var1_nan]
+
+        var2 = var2[var1 != float('inf')]
+        var1 = var1[var1 != float('inf')]
+
+
+        print(np.max(var1))
+        print(np.max(var2))
+
+
+
+
 
         def f(B, x):
             return B[0]*x + B[1]
@@ -235,32 +245,32 @@ for _, year in enumerate(years):
 
     if arctic_domain_scatter:
 
-        monthly_scatter(station_arctic_domain.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'arctic_domain_monthly_scatter'+savename_suffix)
 
     if norway_scatter:
 
-        monthly_scatter(station_stats_norway.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'norway_monthly_scatter'+savename_suffix)
 
     if alaska_scatter:
 
-        monthly_scatter(station_stats_alaska.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'alaska_monthly_scatter'+savename_suffix)
 
     if canada_scatter:
 
-        monthly_scatter(station_stats_canada.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'canada_monthly_scatter'+savename_suffix)
 
     if flat_europe_scatter:
 
-        monthly_scatter(station_stats_flat_europe.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'flat_europe_monthly_scatter'+savename_suffix)
 
     if syberia_scatter:
 
-        monthly_scatter(station_stats_syberia.columns.values, year, var1_year,
+        monthly_scatter(year, var1_year,
                         var2_year, fig_save_directory, 'syberia_monthly_scatter'+savename_suffix)
 
     """Snow extend scatter plots"""
