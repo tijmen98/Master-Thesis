@@ -634,6 +634,7 @@ for _ , year in enumerate(years):
 
 
         modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
+        modis_albedo = modis_albedo.where(modis_albedo['lat'] < 75)
         modis_albedo_rolmean = modis_albedo.rolling(time=moving_average_window, center=True).mean()
         del(modis_albedo)
         modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values > 0.95)
@@ -643,6 +644,7 @@ for _ , year in enumerate(years):
 
         racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').sel(
             time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
+        racmo_albedo = racmo_albedo.where(racmo_albedo['lat'] <75)
         racmo_albedo_rolmean = racmo_albedo.rolling(time=moving_average_window, center=True).mean()
         del(racmo_albedo)
         racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover > 0.95)

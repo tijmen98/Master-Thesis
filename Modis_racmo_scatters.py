@@ -139,6 +139,9 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         var1 = var1_month.values.flatten('F')
         var2 = var2_month.values.flatten('F')
 
+        var1 = var1[var2 != 0]
+        var2 = var2[var2 != 0]
+
         var2_nan = [not bool for bool in np.isnan(var2)]
         if var2_nan.count(True) == 0:
             continue
@@ -154,14 +157,6 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         var2 = var2[var1 != float('inf')]
         var1 = var1[var1 != float('inf')]
 
-
-        print(np.max(var1))
-        print(np.max(var2))
-
-
-
-
-
         def f(B, x):
             return B[0]*x + B[1]
 
@@ -172,9 +167,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
-        bins = np.round((len(var2)/1000)*4, 0).astype(int)
-        if bins < 15:
-            bins = int(15)
+        bins = 80
 
         hist, xedges, yedges = np.histogram2d(var2, var1, bins=bins)
         xidx = np.clip(np.digitize(var2, xedges), 0, hist.shape[0] - 1)
@@ -223,19 +216,6 @@ for _, year in enumerate(years):
         var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked.nc')
 
     """Import area specifications"""
-
-    station_arctic_domain = pd.read_csv(in_situ_data_directory_year + '/station_in_arctic_domain_' + year + '.csv',
-                                index_col=0)
-    station_stats_canada = pd.read_csv(
-        in_situ_data_directory_year + 'stations_in_canada_' + year + '.csv', index_col=0)
-    station_stats_syberia = pd.read_csv(
-        in_situ_data_directory_year + 'stations_in_syberia_' + year + '.csv', index_col=0)
-    station_stats_flat_europe = pd.read_csv(
-        in_situ_data_directory_year + 'stations_in_flat_europe_' + year + '.csv', index_col=0)
-    station_stats_alaska = pd.read_csv(
-        in_situ_data_directory_year + 'stations_in_alaska_' + year + '.csv', index_col=0)
-    station_stats_norway = pd.read_csv(
-        in_situ_data_directory_year + 'stations_in_norway_' + year + '.csv', index_col=0)
 
     if tilefractionplotting:
         #TODO
