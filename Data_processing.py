@@ -20,7 +20,7 @@ import xarray as xr
 import statistics
 from shapely.geometry import Polygon, Point
 import matplotlib.pyplot as plt
-
+from datetime import datetime, timedelta
 import geopandas as gpd
 import math
 
@@ -36,7 +36,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004, 2005, 2006, 2007]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2005, 2006, 2007]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]                       #list of months to process
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
@@ -45,23 +45,24 @@ tilefrac_threshold = 0                  #threshold for tilefraction
 moving_average_window = 3
 """Calculation control"""
 
-select_stations = False                 #Select stations that are in arctic domain
-tilefrac_select = False                 #select stations whithin a certain tilefraction
-calc_stationdata = False        #Extract station snowdepth data and save to csv per station
-interpolate_stationdata = False         #Fill missing values
-fill_nan = False                         #Interpolate
-monthly_data = False                    #Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_racmo_only = False     #extract monthly data at in_situ measurement locations in racmo only
-select_stations_area = False    #select stations that are in focus area
-monthly_statistics = False      #get monthly statistics (bias, mean, RMSE)
-racmo_snowextend = False        #get total snow covered tilefraction
-combine_snow_extend = False     #Combine snow extend netcdfs in one file
-snow_extend_statistics = False      #calculate length of melt and accumulation season
-albedo_extraction = False      #extract modis albedo at in_situ measurement locations
-mask_albedo = True       #select only tiles that are completely covered with snow
-aws_data_modification = False       #AWS data from finnland saved as daily mean
-aws_weather = False     #AWS weather data to yearly files
-racmo_clear_sky = False     #Calculate racmo clear sky albedo from clear sky radiative fluxes
+select_stations = False                 # Select stations that are in arctic domain
+tilefrac_select = False                 # select stations whithin a certain tilefraction
+calc_stationdata = False        # Extract station snowdepth data and save to csv per station
+interpolate_stationdata = False         # Fill missing values
+fill_nan = False                         # Interpolate
+monthly_data = False                    # Extract montly data and save to directories according to structure: /Year/Month/variable.nc
+monthly_data_racmo_only = False     # extract monthly data at in_situ measurement locations in racmo only
+select_stations_area = False    # select stations that are in focus area
+monthly_statistics = False      # get monthly statistics (bias, mean, RMSE)
+racmo_snowextend = False        # get total snow covered tilefraction
+combine_snow_extend = False     # Combine snow extend netcdfs in one file
+snow_extend_statistics = False      # calculate length of melt and accumulation season
+albedo_extraction = False      # extract modis albedo at in_situ measurement locations
+mask_albedo = False       # select only tiles that are completely covered with snow
+aws_data_modification = False       # AWS data from finnland saved as daily mean
+aws_weather = False     # AWS weather data to yearly files
+racmo_clear_sky = False     # Calculate racmo clear sky albedo from clear sky radiative fluxes
+identify_albedo_events_aws = True  # Identify albedo events in racmo timeseries
 
 """File names"""
 
@@ -661,12 +662,12 @@ for _ , year in enumerate(years):
 
     if aws_data_modification:
 
-        t_start = year + '-01-01'
-        t_stop = year + '-12-30'
+        t_start = year + '-01-01 00:00:00'
+        t_stop = year + '-12-30 00:00:00'
 
-        AWS = pd.read_csv(aws_directory + 'SODANKYLA.csv')
+        AWS = pd.read_csv(aws_directory + 'SODANKYLA_RADIATION.csv')
         AWS.rename(columns={'m': 'month', 'd': 'day'}, inplace=True)
-        AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']])
+        AWS['datetime'] = pd.to_datetime(AWS[['Year', 'month', 'day']], format="YYYY-MM-DD")
         AWS = AWS.set_index('datetime')
 
         AWS_daily = pd.DataFrame(index=pd.date_range(t_start, t_stop), columns=AWS.columns[4::])
@@ -682,7 +683,7 @@ for _ , year in enumerate(years):
 
         AWS_daily['Reflected radiation (W/m2)'] = AWS_daily['Reflected radiation (W/m2)'] * -1
         os.makedirs(aws_directory + year + '/', exist_ok=True)
-        AWS_daily.to_csv(aws_directory + year + '/SODANKYLA_daily.csv')
+        AWS_daily.to_csv(aws_directory + year + '/SODANKYLA_RADIATION_daily.csv')
 
     if aws_weather:
 
@@ -733,6 +734,9 @@ if racmo_clear_sky:
 
     albedo.to_netcdf(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc')
     up_shortwave.to_netcdf(racmo_arctic_data_directory+'NC_MD/Shortwave_up.nc')
+
+
+
 
 
 print('All years done')
