@@ -626,28 +626,34 @@ for _ , year in enumerate(years):
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac5']
         tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
+        zsa = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/cosznt.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+            time=slice(year + '-01-01', year + '-12-31'))['cosznt']
 
         snowcover = tilefrac5 + tilefrac7
 
         del(tilefrac5)
         del(tilefrac7)
 
-
         modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
-        modis_albedo = modis_albedo.where(modis_albedo['lat'] < 75)
-        modis_albedo_rolmean = modis_albedo.rolling(time=moving_average_window, center=True).mean()
-        del(modis_albedo)
-        modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values > 0.95)
+
+        modis_albedo_no = modis_albedo.where(modis_albedo['lat'] < 75)
+        modis_albedo_no = modis_albedo_no.where(modis_albedo != 0, np.nan)
+        modis_albedo_no = modis_albedo_no.where(zsa.squeeze().values < np.cos(np.radians(55)))
+        modis_albedo_rolmean = modis_albedo_no.rolling(time=moving_average_window, center=True).mean()
+        modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values == 1)
         del(modis_albedo_rolmean)
         modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_masked.nc')
         del(modis_albedo_masked)
 
-        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').sel(
+        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').squeeze().sel(
             time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
+        racmo_albedo = racmo_albedo.where(modis_albedo.values != 0)
         racmo_albedo = racmo_albedo.where(racmo_albedo['lat'] <75)
+        racmo_albedo = racmo_albedo.where(zsa.squeeze().values < np.cos(np.radians(55)))
+        del(modis_albedo)
         racmo_albedo_rolmean = racmo_albedo.rolling(time=moving_average_window, center=True).mean()
         del(racmo_albedo)
-        racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover > 0.95)
+        racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover == 1)
         del (racmo_albedo_rolmean)
         os.makedirs(racmo_arctic_data_directory+'NC_MD/'+year+'/', exist_ok=True)
         racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked.nc')

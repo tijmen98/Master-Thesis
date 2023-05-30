@@ -46,7 +46,8 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-tilefractionplotting = False
+forest_plot = True
+tundra_plot = False
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -68,7 +69,7 @@ if desktop:
     datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir + 'In_situ_data/'
-racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_new/NC_MD/'
+racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_new/'
 snow_cover_extend_measure_dir = datadir + 'Snow_cover_Measure/'
 mask_directory = datadir + 'Mask/'
 remapdir = datadir + 'Remap/'
@@ -93,15 +94,19 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 
 print('Variable: Albedo')
+
 variable = 'Clear_sky_albedo'
 racmo_filename = 'Clearsky_albedo_calculated_masked.nc'
 savename_suffix = '_Albedo'
 
+if tundra_plot:
+    savename_suffix = savename_suffix + '_' + 'tundra'
+    print('Location is Tundra')
 
+elif forest_plot:
+    print('Location is Forest')
+    savename_suffix = savename_suffix + '_' + 'forest'
 
-
-if tilefractionplotting:
-    savename_suffix = savename_suffix + '_' + tilefrac
 def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """Define limits per variable"""
@@ -212,14 +217,39 @@ for _, year in enumerate(years):
     in_situ_data_directory_year = in_situ_data_directory + year + '/Calculated/'
 
     if Albedo:
-        var1_year = xr.open_dataset(racmo_arctic_data_directory + year + '/Clearsky_albedo_calculated_masked.nc')
+        var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_masked.nc')
         var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked.nc')
 
     """Import area specifications"""
 
-    if tilefractionplotting:
-        #TODO
-        None
+    if forest_plot:
+
+        tilefrac6 = xr.open_dataset(
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            'tilefrac6']
+        tilefrac7 = xr.open_dataset(
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            'tilefrac7']
+
+        forest = tilefrac6.isel(time=0) + tilefrac7.isel(time=0)
+
+        var1_year = var1_year.squeeze().where(forest.squeeze().values > 0.5)
+        var2_year = var2_year.where(forest.squeeze().values > 0.5)
+
+    if tundra_plot:
+
+        tilefrac6 = xr.open_dataset(
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            'tilefrac6']
+        tilefrac7 = xr.open_dataset(
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            'tilefrac7']
+
+        forest = tilefrac6.isel(time=0) + tilefrac7.isel(time=0)
+
+        var1_year = var1_year.squeeze().where(forest.squeeze().values < 0.1)
+        var2_year = var2_year.where(forest.squeeze().values < 0.1)
+
 
     """Snowheight scatter plots"""
 
