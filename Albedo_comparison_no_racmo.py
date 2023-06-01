@@ -54,7 +54,7 @@ def THEORY_ALB_MELT(MIN_ALB, MAX_ALB, start_alb, RELAX, time, snowfall_time):
     return(albedo)
 
 
-fig, axs = plt.subplots(6, figsize= (10,12))
+fig, axs = plt.subplots(3, figsize= (10,12))
 
 year = str(2006)
 
@@ -128,9 +128,9 @@ for event in range(len(Snowfall.index)):
 mean_modis_event = np.mean(modis_events, axis=0)
 mean_event = np.mean(aws_events, axis=0)
 mean_model_event = np.mean(model_events, axis=0)
-axs[0].plot(mean_model_event, linewidth=1.5, color='blue', linestyle=(0, (1, 1)))
-axs[0].plot(mean_event, linewidth=1.5, color='blue')
-axs[0].plot(mean_modis_event, linewidth=1.5, color='blue', linestyle=(0, (2, 2)))
+axs[0].plot(mean_model_event, linewidth=1.5, color='blue', linestyle=(0, (1, 1)), label='mean_model_cold')
+axs[0].plot(mean_event, linewidth=1.5, color='blue', label='mean_aws_cold')
+axs[0].plot(mean_modis_event, linewidth=1.5, color='blue', linestyle=(0, (2, 2)), label='mean_modis_cold')
 
 """AWS AND MODIS FIND MOMENTS WHERE SNOW MELTS AND EXTRACT ALBEDO TIMESERIES AROUND THESE MOMENTS"""
 
@@ -155,8 +155,6 @@ for event in range(len(warm.index)):
         if snowfall.iloc[i] > 2:
             snowfall_events.append(i)
 
-
-
     AWS_ALBEDO = abs(RADIATION.loc[str(start_date):str(end_date)]['Reflected radiation (W/m2)']) / abs(
         RADIATION.loc[str(start_date):str(end_date)]['Global radiation (W/m2)'])
     AWS_SNOWDEPTH = WEATHER.loc[str(start_date):str(end_date)]['Snow depth (cm)']
@@ -172,95 +170,19 @@ for event in range(len(warm.index)):
 mean_modis_event = np.mean(modis_events, axis=0)
 mean_event = np.mean(aws_events, axis=0)
 mean_model_event = np.mean(model_events, axis=0)
-axs[0].plot(mean_model_event, linewidth=1.5, color='red', linestyle=(0, (1, 1)))
-axs[0].plot(mean_event, linewidth=1.5, color='red')
-axs[0].plot(mean_modis_event, linewidth=1.5, color='red', linestyle=(0, (2, 2)))
-
-"""RACMO FIND MOMENTS WHERE SNOW ACCUMULATES AND EXTRACT ALBEDO TIMESERIES AROUND THESE MOMENTS"""
-
-Precep = RACMO_SNOWFALL[RACMO_SNOWFALL.values > 0.00003]
-racmo_events = []
-model_events = []
-modis_events = []
-for event in range(len(Precep.index)):
-
-    start_date = pd.to_datetime(Precep.index[event]) - timedelta(days=5)
-    end_date = pd.to_datetime(Precep.index[event]) + timedelta(days=10)
-
-    if RACMO_SNOWDEPTH[0].loc[str(start_date):str(end_date)].mean() < 0.1:
-        continue
-
-    snowfall = RACMO_SNOWFALL[0].loc[str(start_date):str(end_date)]
-    snowfall_events = []
-
-    for i in range(len(snowfall)):
-        if snowfall.iloc[i] > 2:
-            snowfall_events.append(i)
-
-    racmo_events.append(RACMO_ALBEDO.loc[str(start_date):str(end_date)].values)
-    model_events.append(THEORY_ALB_SNOWFALL(MIN_ALB, MAX_ALB, first_alb, COLD_SNOW_RELAX, timerange, snowfall_events))
-    modis_events.append(MODIS.loc[str(start_date):str(end_date)]['Albedo'].values)
-
-    axs[4].plot(timerange, surface_albedo_to_clear_sky(THEORY_ALB_SNOWFALL(MIN_ALB, MAX_ALB, first_alb, COLD_SNOW_RELAX, timerange, snowfall_events)), color='red', linewidth=0.5)
-    axs[4].plot(MODIS.loc[str(start_date):str(end_date)]['Albedo'].values, linewidth=0.5, color='orange')
-    axs[4].plot(RACMO_ALBEDO.loc[str(start_date):str(end_date)].values, linewidth=0.5, color='purple')
-
-drop_event = []
-for i in range(len(racmo_events)-1):
-    if len(racmo_events[i]) != 16:
-        drop_event.append(i)
-
-mean_modis_event = np.mean(modis_events[drop_event], axis=0)
-mean_racmo_event = np.mean(racmo_events[drop_event], axis=0)
-mean_model_event = np.mean(model_events[drop_event], axis=0)
-axs[3].plot(mean_model_event, linewidth=1.5, color='blue', linestyle=(0, (1, 1)))
-axs[3].plot(mean_racmo_event, linewidth=1.5, color='blue')
-axs[3].plot(mean_modis_event, linewidth=1.5, color='blue', linestyle=(0, (2, 2)))
-
-"""RACMO FIND MOMENTS WHERE SNOW MELTS AND EXTRACT ALBEDO TIMESERIES AROUND THESE MOMENTS"""
-
-warm = RACMO_TEMPERATURE[RACMO_TEMPERATURE.values > 273.]
-racmo_events = []
-model_events = []
-modis_events = []
-for event in range(len(warm.index)-1):
-    start_date = pd.to_datetime(warm.index[event]) - timedelta(days=5)
-    end_date = pd.to_datetime(warm.index[event]) + timedelta(days=10)
-
-    if RACMO_SNOWDEPTH.loc[str(pd.to_datetime(warm.index[event])).split(' ')[0]].values < RACMO_SNOWDEPTH.loc[str(pd.to_datetime(warm.index[event])+timedelta(days=1)).split(' ')[0]].values:
-        continue
-    if RACMO_SNOWDEPTH[0].loc[str(start_date):str(end_date)].mean() < 0.1:
-        continue
-
-    snowfall = RACMO_SNOWFALL[0].loc[str(start_date):str(end_date)]
-
-    snowfall_events = []
-
-    for i in range(len(snowfall)):
-        if snowfall.iloc[i] > 2:
-            snowfall_events.append(i)
-
-    racmo_events.append(RACMO_ALBEDO.loc[str(start_date):str(end_date)].values)
-    modis_events.append(MODIS.loc[str(start_date):str(end_date)]['Albedo'].values)
-    model_events.append(THEORY_ALB_MELT(MIN_ALB, MAX_ALB, first_alb, MELT_RELAX, timerange, snowfall_events))
-
-    axs[5].plot(timerange, surface_albedo_to_clear_sky(THEORY_ALB_MELT(MIN_ALB, MAX_ALB, first_alb, MELT_RELAX, timerange, snowfall_events)), color='red', linewidth=0.5)
-    axs[5].plot(MODIS.loc[str(start_date):str(end_date)]['Albedo'].values, linewidth=0.5, color='orange')
-    axs[5].plot(RACMO_ALBEDO.loc[str(start_date):str(end_date)].values, linewidth=0.5, color='purple')
-
-mean_modis_event = np.nanmean(modis_events, axis=0)
-mean_racmo_event = np.nanmean(racmo_events, axis=0)
-mean_model_event = np.nanmean(model_events, axis=0)
-axs[3].plot(mean_model_event, linewidth=1.5, color='red', linestyle=(0, (1, 1)))
-axs[3].plot(mean_racmo_event, linewidth=1.5, color='red')
-axs[3].plot(mean_modis_event, linewidth=1.5, color='red', linestyle=(0, (2, 2)))
+axs[0].plot(mean_model_event, linewidth=1.5, color='red', linestyle=(0, (1, 1)), label='mean_model_warm')
+axs[0].plot(mean_event, linewidth=1.5, color='red', label='mean_aws_warm')
+axs[0].plot(mean_modis_event, linewidth=1.5, color='red', linestyle=(0, (2, 2)), label='mean_modis_warm')
 
 
 axs[0].set_ylim(0,1)
+axs[0].set_title('Mean')
+axs[0].legend()
 axs[1].set_ylim(0,1)
+axs[1].set_title('Cold')
 axs[2].set_ylim(0,1)
-axs[3].set_ylim(0,1)
-axs[4].set_ylim(0,1)
+axs[2].set_title('Warm')
+
 plt.show()
 
 print('Done')
