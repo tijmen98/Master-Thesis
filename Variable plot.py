@@ -27,7 +27,7 @@ import Thesis_Functions.plotting as plotting
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 year = str(2002)
-time = 150
+time = 15
 safevariable = 'ALBEDO'
 variable = 'Clear-sky_albedo'
 
@@ -65,7 +65,10 @@ ax2.coastlines(resolution='50m')
 plt.colorbar(result2, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
 ax2.set_title('Modis clear sky albedo '+year, size='xx-large')
 
-
 plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+safevariable+'test.jpeg', dpi=400)
+plt.close()
+
+modis_ds['Albedo'].isel(rlat=64, rlon=50).plot
+
 
 print('')
