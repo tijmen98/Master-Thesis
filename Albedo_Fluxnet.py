@@ -60,7 +60,7 @@ for file in files:
 
     """Extract data from fluxnet dataset"""
     try:
-        ds_sel = ds_fluxnet.loc[:, ['SW_IN_MDS', 'SW_OUT', 'P_F', 'TA_F_MDS']]
+        ds_sel = ds_fluxnet.loc[:, ['SW_IN_F_MDS', 'SW_OUT', 'P_F', 'TA_F_MDS']]
     except:
         new_files.remove(file)
         continue
