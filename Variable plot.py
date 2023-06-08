@@ -68,7 +68,5 @@ ax2.set_title('Modis clear sky albedo '+year, size='xx-large')
 plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/'+safevariable+'test.jpeg', dpi=400)
 plt.close()
 
-modis_ds['Albedo'].isel(rlat=64, rlon=50).plot
-
 
 print('')
