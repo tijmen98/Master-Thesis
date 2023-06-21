@@ -36,7 +36,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2005, 2006, 2007]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]                       #list of months to process
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
@@ -56,13 +56,13 @@ select_stations_area = False    # select stations that are in focus area
 monthly_statistics = False      # get monthly statistics (bias, mean, RMSE)
 racmo_snowextend = False        # get total snow covered tilefraction
 combine_snow_extend = False     # Combine snow extend netcdfs in one file
-snow_extend_statistics = False      # calculate length of melt and accumulation season
+snow_extend_statistics = True      # calculate length of melt and accumulation season
 albedo_extraction = False      # extract modis albedo at in_situ measurement locations
 mask_albedo = False       # select only tiles that are completely covered with snow
 aws_data_modification = False       # AWS data from finnland saved as daily mean
 aws_weather = False     # AWS weather data to yearly files
 racmo_clear_sky = False     # Calculate racmo clear sky albedo from clear sky radiative fluxes
-identify_albedo_events_aws = True  # Identify albedo events in racmo timeseries
+identify_albedo_events_aws = False  # Identify albedo events in racmo timeseries
 
 """File names"""
 
@@ -521,10 +521,13 @@ for _ , year in enumerate(years):
 
     if snow_extend_statistics:
 
-        print('Calculating snow_extend statistics')
+        print('Calculating snow_extent statistics')
 
         snow_cover_measure = xr.open_dataset(snow_cover_analysis_dir + year + '/Measure.nc')['merged_snow_cover_extent']
         snow_cover_racmo = xr.open_dataset(snow_cover_analysis_dir + year + '/RACMO.nc')['Snowextend Racmo']
+
+        snow_cover_racmo = snow_cover_racmo.where(snow_cover_racmo > 0.4, 0)
+        snow_cover_racmo = snow_cover_racmo.where(snow_cover_racmo == 0, 1)
 
         snow_cover_measure_melt = snow_cover_measure.sel(time=slice(year+'-01-01', year+breakdate)).sum(dim='time')
         snow_cover_racmo_melt = snow_cover_racmo.sel(time=slice(year+'-01-01', year+breakdate)).sum(dim='time')

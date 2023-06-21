@@ -23,17 +23,17 @@ import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
 
 threshold = 0.4 #threshold where difference between snow and no snow is classified
-year = 2001
+year = 2002
 
 
-datadir = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Snow_cover_analyses/Snow_cover_ease_grid/'
-savedir_threshold = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Snow_cover_analyses/Threshold analyses/'+str(year)+'/Threshold_'+str(threshold)+'/'
+datadir = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Snow_cover_ease_grid/'+str(year)+'/'
+savedir_threshold = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Threshold analyses/'+str(year)+'/Threshold_'+str(threshold)+'/'
 
-remapdir = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Remap/'
+remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
 fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/Threshold_'+str(threshold)+'/'
 
 Day_of_year_calculation = False
-Season_length_calculation = True
+Season_length_calculation = False
 Day_of_year_plot = False
 Season_length_plot = True
 Location_map = False
@@ -90,8 +90,6 @@ measure_ease['lat']=(('rows','cols'),latitudes)
 measure_ease['lon']=(('rows','cols'),longitudes)
 
 """Make racmo data boolian"""
-
-
 
 time = '2001-03-20'
 
@@ -398,9 +396,7 @@ if Day_of_year_plot == True:
 if Season_length_plot == True: 
     
     """plot season lengths"""
-    
-    
-    
+
     cols = measure_ease.coords['cols'].values
     rows = measure_ease.coords['rows'].values
         

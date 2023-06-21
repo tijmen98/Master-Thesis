@@ -29,7 +29,7 @@ import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
 
-remapdir = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Remap/'
+remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
 
 #%%
 """apply MODIS mask to racmo"""
@@ -93,3 +93,5 @@ ax.set_aspect(1)
 plt.xticks(np.arange(0,365,50))
 plt.yticks(np.arange(0,365,50))
 plt.tight_layout()
+
+plt.show()
