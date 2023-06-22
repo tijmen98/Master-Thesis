@@ -31,7 +31,7 @@ import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
 
-fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis'
+fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_V1_figures'
 datadirectory = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Snow_cover_ease_grid/'
 remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
 year = str(2002)
@@ -165,7 +165,7 @@ axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
 
 plt.tight_layout()
 
-plt.savefig(fig_save_directory + '/RACMO_MEASURE_ACCUMULATION_SEASON_LENGTH_MAP.png', dpi=800)
+plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_acc_season.png', dpi=800)
 plt.close()
 
 """Last Season"""
@@ -205,7 +205,7 @@ axs[0].annotate('Mean: '+str(np.round(racmo_mean, 2)), (-3500000, -3500000))
 axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
 plt.tight_layout()
 
-plt.savefig(fig_save_directory + '/RACMO_MEASURE_MELT_SEASON_LENGTH_MAP.png', dpi=800)
+plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_melt_season.png', dpi=800)
 plt.close()
 
 """Season difference"""
@@ -217,7 +217,7 @@ vmin = -50
 vmax = 50
 
 cmap = 'seismic'
-levels = 30
+levels = 29
 
 fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=800)
 
@@ -246,6 +246,6 @@ axs[1].annotate('Bias: '+str(np.round(melt_bias, 2)), (-3500000, -3500000))
 
 plt.tight_layout()
 
-plt.savefig(fig_save_directory + '/RACMO_MEASURE_SEASON_LENGTH_DIFFERENCE_MAP.png', dpi=800)
+plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_season_difference.png', dpi=800)
 
 """plot scatter heatmap day of year"""

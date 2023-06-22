@@ -13,22 +13,25 @@ import matplotlib as mpl
 import math
 import scipy
 
-year = str(2002)
+year = str(2004)
 
 
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir+'In_situ_data/'
 in_situ_data_directory_year_calculated = in_situ_data_directory+year+'/Calculated/'
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
+racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/sndp/'
 
-fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
+fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_V1_figures'
 
 scatterplot = True
 
 figrange = 250
 
 stationselect = pd.read_csv(in_situ_data_directory_year_calculated+'station_in_arctic_domain_'+year+'.csv',index_col=0)
+
+mean_bias = []
+mean_RMSE = []
 
 if scatterplot == True:
     
@@ -47,7 +50,7 @@ if scatterplot == True:
             xindex = math.floor(month/4)
             yindex = int(month - math.floor(month/4)*4)
 
-        monthdir_in_situ = in_situ_data_directory_year_calculated+'month_'+str(month+1)
+        monthdir_in_situ = in_situ_data_directory_year_calculated+'snow_depth/month_'+str(month+1)
         monthdir_racmo = racmo_arctic_data_directory+year+'/month_'+str(month+1)
 
         in_situ = pd.read_csv(monthdir_in_situ+'/stationdata.csv',index_col=0).loc[:,stationselect.columns]
@@ -60,10 +63,13 @@ if scatterplot == True:
         racmo = racmo.flatten('F')
         
         RMSE = np.sqrt(np.mean(((racmo-in_situ)**2)))
-        regres =scipy.stats.linregress(racmo,in_situ)
-        #number_of_points = in_situ[in_situ>=0 & racmo >= 0].count()
-    
-        hist, xedges, yedges = np.histogram2d(in_situ,racmo,bins=100)
+        regres =scipy.stats.linregress(racmo, in_situ)
+        bias = np.mean(racmo - in_situ)
+
+        mean_bias.append(bias)
+        mean_RMSE.append(RMSE)
+
+        hist, xedges, yedges = np.histogram2d(in_situ, racmo, bins=100)
         xidx = np.clip(np.digitize(in_situ, xedges), 0, hist.shape[0]-1)
         yidx = np.clip(np.digitize(racmo, yedges), 0, hist.shape[1]-1)
         c = hist[xidx, yidx]
@@ -82,7 +88,10 @@ if scatterplot == True:
         axs[xindex,yindex].annotate(('RMSE:'+str(np.round(RMSE,1))),xy=(150,50))
         axs[xindex,yindex].annotate(('Slope:'+str(np.round(regres.slope,3))),xy=(150,40))  
         axs[xindex,yindex].annotate(('CC:'+str(np.round(regres.rvalue,3))),xy=(150,30))
+        axs[xindex, yindex].annotate(('Bias:' + str(np.round(bias, 3))), xy=(150, 20))
+
+    fig.suptitle('Yearly RMSE: '+str(np.round(np.mean(mean_RMSE), 1))+' yearly bias: '+str(np.round(np.mean(mean_bias), 1)))
     
     
-    plt.savefig(fig_save_directory+'/'+year+'/RACMO_monthly_scatter_'+year+'.png',dpi=800)
+    plt.savefig(fig_save_directory+'/'+year+'/snowheigh_monthly_scatter_'+year+'.png',dpi=800)
     
