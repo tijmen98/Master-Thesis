@@ -30,222 +30,226 @@ os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scr
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
-
-fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_V1_figures'
+version = 'v1'
+fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures'
 datadirectory = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Snow_cover_ease_grid/'
 remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
-year = str(2002)
 
-measure_ease = xr.open_dataset(remapdir+'Measure_2001_EASE.nc')
 
-ds_racmo_acc = xr.open_dataset(datadirectory+year+'/racmo_acc_season.nc')
-ds_measure_acc = xr.open_dataset(datadirectory+year+'/measure_acc_season.nc')
-da_racmo_acc = ds_racmo_acc['Snowextend Racmo'].squeeze()
-da_measure_acc = ds_measure_acc['merged_snow_cover_extent']
+for year in ['2002', '2003', '2004']:
 
-ds_racmo_melt = xr.open_dataset(datadirectory+year+'/racmo_melt_season.nc')
-ds_measure_melt = xr.open_dataset(datadirectory+year+'/measure_melt_season.nc')
-da_racmo_melt = ds_racmo_melt['Snowextend Racmo'].squeeze()
-da_measure_melt = ds_measure_melt['merged_snow_cover_extent']
+    print('year is '+year)
 
+    measure_ease = xr.open_dataset(remapdir+'Measure_2001_EASE.nc')
 
-"""Create masks"""
+    ds_racmo_acc = xr.open_dataset(datadirectory+year+'/racmo_'+version+'_acc_season.nc')
+    ds_measure_acc = xr.open_dataset(datadirectory+year+'/measure_acc_season.nc')
+    da_racmo_acc = ds_racmo_acc['Snowextend Racmo'].squeeze()
+    da_measure_acc = ds_measure_acc['merged_snow_cover_extent']
 
-land_ice_mask = xr.DataArray(Image.open(remapdir+'EASE2_N25km.LOCImask_land50_coast0km.720x720.png'))
-land_mask_racmo = xr.open_dataset(remapdir+'RACMO2.4_Sea_2001-01-01_EASE_grid.nc')
+    ds_racmo_melt = xr.open_dataset(datadirectory+year+'/racmo_'+version+'_melt_season.nc')
+    ds_measure_melt = xr.open_dataset(datadirectory+year+'/measure_melt_season.nc')
+    da_racmo_melt = ds_racmo_melt['Snowextend Racmo'].squeeze()
+    da_measure_melt = ds_measure_melt['merged_snow_cover_extent']
 
-"""create masks"""
 
-land_mask_racmo = land_mask_racmo.to_array()
-land_ice_mask = land_ice_mask[:,:,0]+land_ice_mask[:,:,1]+land_ice_mask[:,:,2]
-land_mask = land_ice_mask.where(land_ice_mask>200,0)
-land_mask = land_mask.where(land_ice_mask<200,1)
+    """Create masks"""
 
-ice_mask = land_ice_mask.where(land_ice_mask<200,0)
-ice_mask = ice_mask.where(ice_mask>185,0)
-ice_mask = ice_mask.where(ice_mask<175,1)
-ice_mask = ice_mask.where(ice_mask==1,np.nan)
+    land_ice_mask = xr.DataArray(Image.open(remapdir+'EASE2_N25km.LOCImask_land50_coast0km.720x720.png'))
+    land_mask_racmo = xr.open_dataset(remapdir+'RACMO2.4_Sea_2001-01-01_EASE_grid.nc')
 
-sea_mask = land_ice_mask.where(land_ice_mask>150,1)
-sea_mask = sea_mask.where(sea_mask<150,0)
+    """create masks"""
 
-ice_mask = ice_mask.rename({'dim_0':'rows','dim_1':'cols'})
+    land_mask_racmo = land_mask_racmo.to_array()
+    land_ice_mask = land_ice_mask[:,:,0]+land_ice_mask[:,:,1]+land_ice_mask[:,:,2]
+    land_mask = land_ice_mask.where(land_ice_mask>200,0)
+    land_mask = land_mask.where(land_ice_mask<200,1)
 
-"""Latitudes, longitudes"""
-"""Create grid with latitudes and longitudes in EASE grid"""
+    ice_mask = land_ice_mask.where(land_ice_mask<200,0)
+    ice_mask = ice_mask.where(ice_mask>185,0)
+    ice_mask = ice_mask.where(ice_mask<175,1)
+    ice_mask = ice_mask.where(ice_mask==1,np.nan)
 
-grid = EASE2GRID(name='EASE2_N25km', **SUPPORTED_GRIDS['EASE2_N25km'])
+    sea_mask = land_ice_mask.where(land_ice_mask>150,1)
+    sea_mask = sea_mask.where(sea_mask<150,0)
 
-latitudes = np.zeros((720, 720))
-longitudes = np.zeros((720, 720))
+    ice_mask = ice_mask.rename({'dim_0':'rows','dim_1':'cols'})
 
-for row in range(720):
-    for col in range(720):
-        try:
-            longitudes[row, col], latitudes[row, col] = grid.rc2lonlat(col=col, row=row)
+    """Latitudes, longitudes"""
+    """Create grid with latitudes and longitudes in EASE grid"""
 
-        except:
-            True
+    grid = EASE2GRID(name='EASE2_N25km', **SUPPORTED_GRIDS['EASE2_N25km'])
 
-"""Universel land mask"""
+    latitudes = np.zeros((720, 720))
+    longitudes = np.zeros((720, 720))
 
-land_mask_universal = xr.DataArray(land_mask.to_numpy() * land_mask_racmo.squeeze().isel(time=300).to_numpy())
-land_mask_universal = land_mask_universal.rename({'dim_0':'rows','dim_1':'cols'})
+    for row in range(720):
+        for col in range(720):
+            try:
+                longitudes[row, col], latitudes[row, col] = grid.rc2lonlat(col=col, row=row)
 
-"""Assign coordinates"""
+            except:
+                True
 
-cols = measure_ease.coords['cols'].values
-rows = measure_ease.coords['rows'].values
+    """Universel land mask"""
 
-ds_measure_acc = ds_measure_acc.assign_coords(
-    {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
-     'rows': (('rows'), rows), 'cols': (('cols'), cols)})
-ds_racmo_acc = ds_racmo_acc.assign_coords(
-    {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
-     'rows': (('rows'), rows), 'cols': (('cols'), cols)})
+    land_mask_universal = xr.DataArray(land_mask.to_numpy() * land_mask_racmo.squeeze().isel(time=300).to_numpy())
+    land_mask_universal = land_mask_universal.rename({'dim_0':'rows','dim_1':'cols'})
 
-ds_measure_melt = ds_measure_melt.assign_coords(
-    {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
-     'rows': (('rows'), rows), 'cols': (('cols'), cols)})
-ds_racmo_melt = ds_racmo_melt.assign_coords(
-    {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
-     'rows': (('rows'), rows), 'cols': (('cols'), cols)})
+    """Assign coordinates"""
 
-ice_mask = ice_mask.assign_coords({'latitude':(('rows','cols'),latitudes),'longitude':(('rows','cols'),longitudes),'rows':(('rows'),rows),'cols':(('cols'),cols)})
+    cols = measure_ease.coords['cols'].values
+    rows = measure_ease.coords['rows'].values
 
+    ds_measure_acc = ds_measure_acc.assign_coords(
+        {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
+         'rows': (('rows'), rows), 'cols': (('cols'), cols)})
+    ds_racmo_acc = ds_racmo_acc.assign_coords(
+        {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
+         'rows': (('rows'), rows), 'cols': (('cols'), cols)})
 
-"""Masking"""
-ds_racmo_acc['Snowextent_masked'] = ds_racmo_acc['Snowextend Racmo'].where(
-    land_mask_universal == 1, np.nan)
-ds_measure_acc['Snowextent_masked'] = ds_measure_acc['merged_snow_cover_extent'].where(
-    land_mask_universal == 1, np.nan)
+    ds_measure_melt = ds_measure_melt.assign_coords(
+        {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
+         'rows': (('rows'), rows), 'cols': (('cols'), cols)})
+    ds_racmo_melt = ds_racmo_melt.assign_coords(
+        {'latitude': (('rows', 'cols'), latitudes), 'longitude': (('rows', 'cols'), longitudes),
+         'rows': (('rows'), rows), 'cols': (('cols'), cols)})
 
-ds_racmo_melt['Snowextent_masked'] = ds_racmo_melt['Snowextend Racmo'].where(
-    land_mask_universal == 1, np.nan)
-ds_measure_melt['Snowextent_masked'] = ds_measure_melt['merged_snow_cover_extent'].where(
-    land_mask_universal == 1, np.nan)
+    ice_mask = ice_mask.assign_coords({'latitude':(('rows','cols'),latitudes),'longitude':(('rows','cols'),longitudes),'rows':(('rows'),rows),'cols':(('cols'),cols)})
 
-lim = 4000000
 
-vmin = 0
-vmax = 100
+    """Masking"""
+    ds_racmo_acc['Snowextent_masked'] = ds_racmo_acc['Snowextend Racmo'].where(
+        land_mask_universal == 1, np.nan)
+    ds_measure_acc['Snowextent_masked'] = ds_measure_acc['merged_snow_cover_extent'].where(
+        land_mask_universal == 1, np.nan)
 
-cmap = 'Blues'
-levels = 30
+    ds_racmo_melt['Snowextent_masked'] = ds_racmo_melt['Snowextend Racmo'].where(
+        land_mask_universal == 1, np.nan)
+    ds_measure_melt['Snowextent_masked'] = ds_measure_melt['merged_snow_cover_extent'].where(
+        land_mask_universal == 1, np.nan)
 
-"""First Season"""
+    lim = 4000000
 
-fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=800)
-fig.suptitle('First season')
+    vmin = 0
+    vmax = 100
 
-ice_mask.plot(ax=axs[0], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
-ice_mask.plot(ax=axs[1], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
+    cmap = 'Blues'
+    levels = 30
 
-axs[0].coastlines(resolution='110m', alpha=0.5)
-axs[1].coastlines(resolution='110m', alpha=0.5)
+    """First Season"""
 
-ds_racmo_acc['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, zorder=10,
-                                                            vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
-ds_measure_acc['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
-                                                              vmin=vmin, vmax=vmax, levels=levels)
-axs[0].set_title('Racmo')
-axs[1].set_title('Satellite')
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
+    fig.suptitle('First season')
 
-axs[0].set_ylim([-lim, lim])
-axs[0].set_xlim([-lim, lim])
+    ice_mask.plot(ax=axs[0], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
+    ice_mask.plot(ax=axs[1], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
 
-axs[1].set_ylim([-lim, lim])
-axs[1].set_xlim([-lim, lim])
+    axs[0].coastlines(resolution='110m', alpha=0.5)
+    axs[1].coastlines(resolution='110m', alpha=0.5)
 
-racmo_mean = np.mean(ds_racmo_acc['Snowextent_masked']).values
-measure_mean = np.mean(ds_measure_acc['Snowextent_masked']).values
-axs[0].annotate('Mean: '+str(np.round(racmo_mean, 2)), (-3500000, -3500000))
-axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
+    ds_racmo_acc['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, zorder=10,
+                                                                vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
+    ds_measure_acc['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
+                                                                  vmin=vmin, vmax=vmax, levels=levels)
+    axs[0].set_title('Racmo')
+    axs[1].set_title('Satellite')
 
+    axs[0].set_ylim([-lim, lim])
+    axs[0].set_xlim([-lim, lim])
 
-plt.tight_layout()
+    axs[1].set_ylim([-lim, lim])
+    axs[1].set_xlim([-lim, lim])
 
-plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_acc_season.png', dpi=800)
-plt.close()
+    racmo_mean = np.mean(ds_racmo_acc['Snowextent_masked']).values
+    measure_mean = np.mean(ds_measure_acc['Snowextent_masked']).values
+    axs[0].annotate('Mean: '+str(np.round(racmo_mean, 2)), (-3500000, -3500000))
+    axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
 
-"""Last Season"""
 
-vmin = 0
-vmax = 150
+    plt.tight_layout()
 
-cmap = 'Blues'
-levels = 30
+    os.makedirs(fig_save_directory+'/'+year, exist_ok=True)
 
-fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=800)
-fig.suptitle('Last season')
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_acc_season.png', dpi=400)
+    plt.close()
 
-axs[0].coastlines(resolution='110m', alpha=0.5)
-axs[1].coastlines(resolution='110m', alpha=0.5)
+    """Last Season"""
 
-ds_racmo_melt['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap,
-                                                            vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
-ds_measure_melt['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
-                                                              vmin=vmin, vmax=vmax, levels=levels)
+    vmin = 0
+    vmax = 150
 
-ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
-ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)
+    cmap = 'Blues'
+    levels = 30
 
-axs[0].set_title('Racmo')
-axs[1].set_title('Satellite')
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
+    fig.suptitle('Last season')
 
-axs[0].set_ylim([-lim, lim])
-axs[0].set_xlim([-lim, lim])
+    axs[0].coastlines(resolution='110m', alpha=0.5)
+    axs[1].coastlines(resolution='110m', alpha=0.5)
 
-axs[1].set_ylim([-lim, lim])
-axs[1].set_xlim([-lim, lim])
+    ds_racmo_melt['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap,
+                                                                vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
+    ds_measure_melt['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
+                                                                  vmin=vmin, vmax=vmax, levels=levels)
 
-racmo_mean = np.mean(ds_racmo_melt['Snowextent_masked']).values
-measure_mean = np.mean(ds_measure_melt['Snowextent_masked']).values
-axs[0].annotate('Mean: '+str(np.round(racmo_mean, 2)), (-3500000, -3500000))
-axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
-plt.tight_layout()
+    ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
+    ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)
 
-plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_melt_season.png', dpi=800)
-plt.close()
+    axs[0].set_title('Racmo')
+    axs[1].set_title('Satellite')
 
-"""Season difference"""
+    axs[0].set_ylim([-lim, lim])
+    axs[0].set_xlim([-lim, lim])
 
-acc_bias = np.nanmean(ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked'])
-melt_bias = np.nanmean(ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked'])
+    axs[1].set_ylim([-lim, lim])
+    axs[1].set_xlim([-lim, lim])
 
-vmin = -50
-vmax = 50
+    racmo_mean = np.mean(ds_racmo_melt['Snowextent_masked']).values
+    measure_mean = np.mean(ds_measure_melt['Snowextent_masked']).values
+    axs[0].annotate('Mean: '+str(np.round(racmo_mean, 2)), (-3500000, -3500000))
+    axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
+    plt.tight_layout()
 
-cmap = 'seismic'
-levels = 29
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_melt_season.png', dpi=400)
+    plt.close()
 
-fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=800)
+    """Season difference"""
 
-axs[0].coastlines(resolution='110m', alpha=0.5)
-axs[1].coastlines(resolution='110m', alpha=0.5)
+    acc_bias = np.nanmean(ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked'])
+    melt_bias = np.nanmean(ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked'])
 
-(ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked']).plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
-                                        levels=levels, add_colorbar=False)
-(ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked']).plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
-                                       levels=levels)
+    vmin = -50
+    vmax = 50
 
-ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
-ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)
+    cmap = 'seismic'
+    levels = 29
 
-axs[0].set_title('Accumulation season')
-axs[1].set_title('Melt season')
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
 
-axs[0].set_ylim([-lim, lim])
-axs[0].set_xlim([-lim, lim])
+    axs[0].coastlines(resolution='110m', alpha=0.5)
+    axs[1].coastlines(resolution='110m', alpha=0.5)
 
-axs[1].set_ylim([-lim, lim])
-axs[1].set_xlim([-lim, lim])
+    (ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked']).plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
+                                            levels=levels, add_colorbar=False)
+    (ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked']).plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
+                                           levels=levels)
 
-axs[0].annotate('Bias: '+str(np.round(acc_bias, 2)), (-3500000, -3500000))
-axs[1].annotate('Bias: '+str(np.round(melt_bias, 2)), (-3500000, -3500000))
+    ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
+    ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)
 
-plt.tight_layout()
+    axs[0].set_title('Accumulation season')
+    axs[1].set_title('Melt season')
 
-plt.savefig(fig_save_directory+'/'+year+'/racmo_measure_season_difference.png', dpi=800)
+    axs[0].set_ylim([-lim, lim])
+    axs[0].set_xlim([-lim, lim])
 
-"""plot scatter heatmap day of year"""
+    axs[1].set_ylim([-lim, lim])
+    axs[1].set_xlim([-lim, lim])
+
+    axs[0].annotate('Bias: '+str(np.round(acc_bias, 2)), (-3500000, -3500000))
+    axs[1].annotate('Bias: '+str(np.round(melt_bias, 2)), (-3500000, -3500000))
+
+    plt.tight_layout()
+
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_season_difference.png', dpi=400)

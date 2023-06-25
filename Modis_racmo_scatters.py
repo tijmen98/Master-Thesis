@@ -24,12 +24,15 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004, 2005, 2006, 2007]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+version = 'v2'
+
+years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
 Albedo = True
+MODIS_filter = False
 
 """plotting control"""
 
@@ -46,7 +49,7 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-forest_plot = True
+forest_plot = False
 tundra_plot = False
 tilefrac = 'tilefrac9'
 
@@ -54,12 +57,9 @@ area_map = False
 
 """File names"""
 
-racmo_snowdepth = 'NC_DEFAULT/sndp.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
 filename = '/Measure_merged.nc'  # Filename for combined measure dataset
 
 """Directories"""
-
-fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
 
 if laptop:
     print('Directory structure: laptop')
@@ -69,13 +69,21 @@ if desktop:
     datadir = "E:/Master-Thesis/Data/"
 
 in_situ_data_directory = datadir + 'In_situ_data/'
-racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_new/'
+
+if version == 'v1':
+    racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_new/'
+    racmo_filename_additive = '.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+else:
+    racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_v2/'
+    racmo_filename_additive = '.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_era5q_tijmen.DD.nc'
 snow_cover_extend_measure_dir = datadir + 'Snow_cover_Measure/'
 mask_directory = datadir + 'Mask/'
 remapdir = datadir + 'Remap/'
 snow_cover_analysis_dir = datadir + 'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 modis_directory = datadir+'MODIS/'
+
+fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures/'
 
 """Bounding boxes for study area"""
 
@@ -122,7 +130,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """plot scatter heatmap day of year"""
 
-    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
+    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=400)
 
     for month in range(12):
 
@@ -165,10 +173,10 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         def f(B, x):
             return B[0]*x + B[1]
 
-        #linear = scipy.odr.Model(f)
-        #odrdata = scipy.odr.Data(var2, var1)
-        #odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
-        #output = odr.run()
+        linear = scipy.odr.Model(f)
+        odrdata = scipy.odr.Data(var2, var1)
+        odr = scipy.odr.ODR(odrdata, linear, beta0=[1, 0])
+        output = odr.run()
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
@@ -185,10 +193,9 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         axs[xindex, yindex].set_ylabel(ylabel)
         axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), np.linspace(limits[0], limits[1], 10), color='black', linestyle=(0, (3, 3)), zorder=10,
                                  alpha=0.5)
-        try: axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10), output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10), color='red',
-                                    linestyle=(0, (3, 3)), zorder=20, alpha=0.5)
-        except:
-            None
+        axs[xindex, yindex].plot(np.linspace(limits[0], limits[1], 10),
+                                      output.beta[1] + output.beta[0]*np.linspace(limits[0], limits[1], 10),
+                                      color='red', linestyle=(0, (3, 3)), zorder=20, alpha=0.5)
         axs[xindex, yindex].set_xlim(limits[0], limits[1])
         axs[xindex, yindex].set_ylim(limits[0], limits[1])
         axs[xindex, yindex].set_aspect(1)
@@ -207,7 +214,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
     figure_save_directory = save_directory + '/' + year + '/' + variable + '/'
     os.makedirs(figure_save_directory, exist_ok=True)
     figure_name = save_name + '_' + year + '.png'
-    plt.savefig(figure_save_directory + figure_name, dpi=800)
+    plt.savefig(figure_save_directory + figure_name, dpi=400)
 
 for _, year in enumerate(years):
     year = str(year)
@@ -217,18 +224,18 @@ for _, year in enumerate(years):
     in_situ_data_directory_year = in_situ_data_directory + year + '/Calculated/'
 
     if Albedo:
-        var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_masked.nc')
-        var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked.nc')
+        var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_masked_new.nc')
+        var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked_new.nc')
 
     """Import area specifications"""
 
     if forest_plot:
 
         tilefrac6 = xr.open_dataset(
-            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6'+racmo_filename_additive)[
             'tilefrac6']
         tilefrac7 = xr.open_dataset(
-            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7'+racmo_filename_additive)[
             'tilefrac7']
 
         forest = tilefrac6.isel(time=0) + tilefrac7.isel(time=0)
@@ -239,10 +246,10 @@ for _, year in enumerate(years):
     if tundra_plot:
 
         tilefrac6 = xr.open_dataset(
-            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac6'+racmo_filename_additive)[
             'tilefrac6']
         tilefrac7 = xr.open_dataset(
-            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')[
+            racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7'+racmo_filename_additive)[
             'tilefrac7']
 
         forest = tilefrac6.isel(time=0) + tilefrac7.isel(time=0)
@@ -250,6 +257,10 @@ for _, year in enumerate(years):
         var1_year = var1_year.squeeze().where(forest.squeeze().values < 0.1)
         var2_year = var2_year.where(forest.squeeze().values < 0.1)
 
+    if MODIS_filter:
+
+        var1_year = var1_year.squeeze().where(var2_year > 0.1)
+        var2_year = var2_year.where(var2_year > 0.1)
 
     """Snowheight scatter plots"""
 
@@ -303,6 +314,6 @@ if area_map:
     gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='orange')
     gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='yellow')
 
-    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=500)
+    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=400)
 
 print('All plots done')

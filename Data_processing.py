@@ -36,7 +36,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]              #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004, 2005]            #list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1,2,3,4,5,6,7,8,9,10,11,12]                       #list of months to process
 breakdate = '-07-01'                    #Split date between accumulation and melt season
 days_missing_limit = 5                  #Maximum number of missing days before station is discarted (MAKE MORE REFINED FILTER)
@@ -54,14 +54,14 @@ monthly_data = False                    # Extract montly data and save to direct
 monthly_data_racmo_only = False     # extract monthly data at in_situ measurement locations in racmo only
 select_stations_area = False    # select stations that are in focus area
 monthly_statistics = False      # get monthly statistics (bias, mean, RMSE)
-racmo_snowextend = False        # get total snow covered tilefraction
+racmo_snowextent = False       # get total snow covered tilefraction
 combine_snow_extend = False     # Combine snow extend netcdfs in one file
-snow_extend_statistics = True      # calculate length of melt and accumulation season
+snow_extend_statistics = False      # calculate length of melt and accumulation season
 albedo_extraction = False      # extract modis albedo at in_situ measurement locations
-mask_albedo = False       # select only tiles that are completely covered with snow
+mask_albedo = True       # select only tiles that are completely covered with snow
 aws_data_modification = False       # AWS data from finnland saved as daily mean
 aws_weather = False     # AWS weather data to yearly files
-racmo_clear_sky = False     # Calculate racmo clear sky albedo from clear sky radiative fluxes
+racmo_clear_sky = False    # Calculate racmo clear sky albedo from clear sky radiative fluxes
 identify_albedo_events_aws = False  # Identify albedo events in racmo timeseries
 
 """File names"""
@@ -70,10 +70,10 @@ measure_filename='/Measure_merged.nc' #Filename for combined measure dataset
 
 """Variable control"""
 
-Snowdepth = False
+Snowdepth = True
 Surface_temp = False
 Precipitation = False
-Albedo = True
+Albedo = False
 
 """Directories"""
 
@@ -84,15 +84,37 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-in_situ_data_directory = datadir+'In_situ_data/'
-racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001_new/'
-snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
-mask_directory = datadir+'Mask/'
-remapdir = datadir+'Remap/'
-snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
-download_measure_dir = 'Download_3-4/'
-modis_data_directory = datadir+'MODIS/'
-aws_directory = datadir + 'Aws_data/'
+racmo_v1 = False
+racmo_v2 = True
+
+if racmo_v1:
+
+    in_situ_data_directory = datadir+'In_situ_data/'
+    racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001_new/'
+    snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
+    mask_directory = datadir+'Mask/'
+    remapdir = datadir+'Remap/'
+    snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
+    download_measure_dir = 'Download_3-4/'
+    modis_data_directory = datadir+'MODIS/'
+    aws_directory = datadir + 'Aws_data/'
+
+    racmo_filename_additive = '.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+
+if racmo_v2:
+
+    in_situ_data_directory = datadir+'In_situ_data/'
+    racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001_v2/'
+    snow_cover_extend_measure_dir = datadir+'Snow_cover_Measure/'
+    mask_directory = datadir+'Mask/'
+    remapdir = datadir+'Remap/'
+    snow_cover_analysis_dir = datadir+'Snow_cover_analyses/Snow_cover_ease_grid/'
+    download_measure_dir = 'Download_3-4/'
+    modis_data_directory = datadir+'MODIS/'
+    aws_directory = datadir + 'Aws_data/'
+
+    racmo_filename_additive = '.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_era5q_tijmen.DD.nc'
+
 
 """Bounding boxes for location extraction"""
 
@@ -113,7 +135,7 @@ if Snowdepth:
 
     in_situ_variable = 'snow_depth'
     racmo_variable = 'sndp'
-    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+racmo_filename_additive
 
 
 if Surface_temp:
@@ -121,24 +143,24 @@ if Surface_temp:
 
     in_situ_variable = 'air_temperature'
     racmo_variable = 'tas'
-    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+racmo_filename_additive
 
 
 if Precipitation:
 
     in_situ_variable = 'accumulated_precipitation'
     racmo_variable = 'pr'
-    racmo_filename = 'NC_DEFAULT/'+racmo_variable+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    racmo_filename = 'NC_DEFAULT/'+racmo_variable+racmo_filename_additive
 
 if Albedo:
-    in_situ_variable = 'snow_depth'
+    in_situ_variable = '-'
     racmo_variable = 'Clearsky_albedo_calculated'
     racmo_filename = 'NC_MC/'+racmo_variable+'.nc'
 
 
 if tilefrac_select:
 
-    tilefrac_filename = 'NC_DEFAULT/'+tilefrac+'.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc'
+    tilefrac_filename = 'NC_DEFAULT/'+tilefrac+racmo_filename_additive
 
 for _ , year in enumerate(years):
 
@@ -468,15 +490,18 @@ for _ , year in enumerate(years):
 
     """Get snowextend from racmo data [Boolian]"""
 
-    if racmo_snowextend:
+    if racmo_snowextent:
 
-        tilefrac5 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac5').sel(time=slice(t_start, t_stop))
-        tilefrac7 = Data.Variable_Import(racmo_arctic_data_directory, 'tilefrac7').sel(time=slice(t_start, t_stop))
+        t_start = year + '-01-01'
+        t_stop = year + '-12-30'
+
+        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory+'NC_DEFAULT/tilefrac5'+racmo_filename_additive)['tilefrac5'].sel(time=slice(t_start, t_stop))
+        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory+'NC_DEFAULT/tilefrac7'+racmo_filename_additive)['tilefrac7'].sel(time=slice(t_start, t_stop))
 
         tilefrac_57 = (tilefrac5 + tilefrac7)
         tilefrac_57 = tilefrac_57.rename('Snowextend Racmo')
 
-        tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_Snowextend_' + t_start + '_RP_grid.nc')
+        tilefrac_57.to_netcdf(remapdir + 'RACMO2.4_V2_Snowextend_' + year + '_RP_grid.nc')
 
     """Combine snowextend daily files to yearly files"""
 
@@ -524,7 +549,7 @@ for _ , year in enumerate(years):
         print('Calculating snow_extent statistics')
 
         snow_cover_measure = xr.open_dataset(snow_cover_analysis_dir + year + '/Measure.nc')['merged_snow_cover_extent']
-        snow_cover_racmo = xr.open_dataset(snow_cover_analysis_dir + year + '/RACMO.nc')['Snowextend Racmo']
+        snow_cover_racmo = xr.open_dataset(snow_cover_analysis_dir + year + '/RACMO_V2.nc')['Snowextend Racmo']
 
         snow_cover_racmo = snow_cover_racmo.where(snow_cover_racmo > 0.4, 0)
         snow_cover_racmo = snow_cover_racmo.where(snow_cover_racmo == 0, 1)
@@ -536,10 +561,10 @@ for _ , year in enumerate(years):
         snow_cover_racmo_acc = snow_cover_racmo.sel(time=slice(year+breakdate, year+'-12-31',)).sum(dim='time')
 
         snow_cover_measure_melt.to_netcdf(snow_cover_analysis_dir + year + '/measure_melt_season.nc')
-        snow_cover_racmo_melt.to_netcdf(snow_cover_analysis_dir + year + '/racmo_melt_season.nc')
+        snow_cover_racmo_melt.to_netcdf(snow_cover_analysis_dir + year + '/racmo_v2_melt_season.nc')
 
         snow_cover_measure_acc.to_netcdf(snow_cover_analysis_dir + year + '/measure_acc_season.nc')
-        snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_acc_season.nc')
+        snow_cover_racmo_acc.to_netcdf(snow_cover_analysis_dir + year + '/racmo_v2_acc_season.nc')
 
     if monthly_data_racmo_only:
 
@@ -626,11 +651,11 @@ for _ , year in enumerate(years):
 
         print('Masking albedo for full snow cover tiles')
 
-        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac5.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac5'+racmo_filename_additive).sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac5']
-        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7'+racmo_filename_additive).sel(
             time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
-        zsa = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/cosznt.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc').sel(
+        zsa = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/cosznt'+racmo_filename_additive).sel(
             time=slice(year + '-01-01', year + '-12-31'))['cosznt']
 
         snowcover = tilefrac5 + tilefrac7
@@ -641,17 +666,17 @@ for _ , year in enumerate(years):
         modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
 
         modis_albedo_no = modis_albedo.where(modis_albedo['lat'] < 75)
-        modis_albedo_no = modis_albedo_no.where(modis_albedo != 0, np.nan)
+        modis_albedo_no = modis_albedo_no.where(modis_albedo_no.values > 0.01)
         modis_albedo_no = modis_albedo_no.where(zsa.squeeze().values < np.cos(np.radians(55)))
         modis_albedo_rolmean = modis_albedo_no.rolling(time=moving_average_window, center=True).mean()
         modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values == 1)
         del(modis_albedo_rolmean)
-        modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_masked.nc')
+        modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_masked_new.nc')
         del(modis_albedo_masked)
 
         racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').squeeze().sel(
             time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
-        racmo_albedo = racmo_albedo.where(modis_albedo.values != 0)
+        racmo_albedo = racmo_albedo.where(modis_albedo.values > 0.01, np.nan)
         racmo_albedo = racmo_albedo.where(racmo_albedo['lat'] <75)
         racmo_albedo = racmo_albedo.where(zsa.squeeze().values < np.cos(np.radians(55)))
         del(modis_albedo)
@@ -660,7 +685,7 @@ for _ , year in enumerate(years):
         racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover == 1)
         del (racmo_albedo_rolmean)
         os.makedirs(racmo_arctic_data_directory+'NC_MD/'+year+'/', exist_ok=True)
-        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked.nc')
+        racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked_new.nc')
         del (racmo_albedo_masked)
 
     if aws_data_modification:
@@ -716,12 +741,14 @@ for _ , year in enumerate(years):
 
         AWS_daily.to_csv(aws_directory + 'SODANKYLA_WEATHER_daily.csv')
 
-if racmo_clear_sky:
-    print('calculations for clear sky radiation racmo')
+print('All years done')
 
-    exampleds = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')
-    down_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['rsdscs']
-    net_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/ssrc.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['ssrc']
+if racmo_clear_sky:
+    print('Calculations for clear sky radiation racmo')
+
+    exampleds = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs'+racmo_filename_additive)
+    down_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/rsdscs'+racmo_filename_additive)['rsdscs']
+    net_shortwave = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/ssrc'+racmo_filename_additive)['ssrc']
     up_shortwave = net_shortwave-down_shortwave
 
     albedo = abs(up_shortwave)/abs(down_shortwave)
@@ -739,7 +766,6 @@ if racmo_clear_sky:
     up_shortwave.to_netcdf(racmo_arctic_data_directory+'NC_MD/Shortwave_up.nc')
 
 
+print('All calculations done')
 
 
-
-print('All years done')
