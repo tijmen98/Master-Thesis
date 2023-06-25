@@ -24,7 +24,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-version = 'v2'
+version = 'v1'
 
 years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -107,6 +107,8 @@ variable = 'Clear_sky_albedo'
 racmo_filename = 'Clearsky_albedo_calculated_masked.nc'
 savename_suffix = '_Albedo'
 
+savename_suffix = savename_suffix+'_'+version
+
 if tundra_plot:
     savename_suffix = savename_suffix + '_' + 'tundra'
     print('Location is Tundra')
@@ -114,6 +116,7 @@ if tundra_plot:
 elif forest_plot:
     print('Location is Forest')
     savename_suffix = savename_suffix + '_' + 'forest'
+
 
 def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
@@ -204,7 +207,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
         """Add statistics"""
 
-        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
         try:
             axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         except:
