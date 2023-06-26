@@ -84,8 +84,8 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-racmo_v1 = True
-racmo_v2 = False
+racmo_v1 = False
+racmo_v2 = True
 
 if racmo_v1:
 
@@ -666,7 +666,7 @@ for _ , year in enumerate(years):
         modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
 
         modis_albedo_no = modis_albedo.where(modis_albedo['lat'] < 75)
-        modis_albedo_no = modis_albedo_no.where(modis_albedo_no.values > 0.1)
+        modis_albedo_no = modis_albedo_no.where(modis_albedo_no.values > 0.05)
         modis_albedo_no = modis_albedo_no.where(zsa.squeeze().values < np.cos(np.radians(55)))
         modis_albedo_rolmean = modis_albedo_no.rolling(time=moving_average_window, center=True).mean()
         modis_albedo_masked = modis_albedo_rolmean.where(snowcover.squeeze().values == 1)
@@ -676,7 +676,7 @@ for _ , year in enumerate(years):
 
         racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').squeeze().sel(
             time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
-        racmo_albedo = racmo_albedo.where(modis_albedo.values > 0.1, np.nan)
+        racmo_albedo = racmo_albedo.where(modis_albedo.values > 0.05, np.nan)
         racmo_albedo = racmo_albedo.where(racmo_albedo['lat'] <75)
         racmo_albedo = racmo_albedo.where(zsa.squeeze().values < np.cos(np.radians(55)))
         del(modis_albedo)

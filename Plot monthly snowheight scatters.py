@@ -13,7 +13,7 @@ import matplotlib as mpl
 import math
 import scipy
 
-version = 'v1'
+version = 'v2'
 
 for year in ['2002', '2003', '2004']:
     print('year is '+year)
@@ -43,7 +43,7 @@ for year in ['2002', '2003', '2004']:
 
         """plot scatter heatmap day of year"""
 
-        fig, axs = plt.subplots(3,4,figsize=(20,16),dpi=400)
+        fig, axs = plt.subplots(3,4,figsize=(20,16),dpi=300)
 
         month_names = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -98,5 +98,5 @@ for year in ['2002', '2003', '2004']:
 
         fig.suptitle('Yearly RMSE: '+str(np.round(np.mean(mean_RMSE), 1))+' yearly bias: '+str(np.round(np.mean(mean_bias), 1)))
 
-        plt.savefig(fig_save_directory+'/'+year+'/snowheigh_monthly_scatter_'+version+'_'+year+'.png', dpi=400)
+        plt.savefig(fig_save_directory+'/'+year+'/snowheigh_monthly_scatter_'+version+'_'+year+'.png', dpi=300)
     

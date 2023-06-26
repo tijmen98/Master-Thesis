@@ -133,7 +133,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """plot scatter heatmap day of year"""
 
-    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=400)
+    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=300)
 
     for month in range(12):
 
@@ -217,7 +217,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
     figure_save_directory = save_directory + '/' + year + '/' + variable + '/'
     os.makedirs(figure_save_directory, exist_ok=True)
     figure_name = save_name + '_' + year + '.png'
-    plt.savefig(figure_save_directory + figure_name, dpi=400)
+    plt.savefig(figure_save_directory + figure_name, dpi=300)
 
 for _, year in enumerate(years):
     year = str(year)
@@ -317,6 +317,6 @@ if area_map:
     gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='orange')
     gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='yellow')
 
-    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=400)
+    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=300)
 
 print('All plots done')
