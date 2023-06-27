@@ -23,15 +23,17 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+version = 'v2'
+
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
-Snowdepth = False
+Snowdepth = True
 Surface_temp = False
 Precipitation = False
-Albedo = True
+Albedo = False
 
 """plotting control"""
 
@@ -41,10 +43,10 @@ no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
-norway_scatter = False
+norway_scatter = True
 alaska_scatter = False
 canada_scatter = False
-syberia_scatter = False
+syberia_scatter = True
 flat_europe_scatter = False
 
 """Map showing the study areas"""
@@ -52,7 +54,7 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-tilefractionplotting = True
+tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -64,7 +66,8 @@ filename = '/Measure_merged.nc'  # Filename for combined measure dataset
 
 """Directories"""
 
-fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
+
+fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures/'
 
 if laptop:
     print('Directory structure: laptop')
@@ -73,8 +76,12 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
+if version == 'v1':
+    racmo_arctic_data_directory = datadir+'RACMO_2.4/PXARC11/2001/'
+else:
+    racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001_v2/'
+
 in_situ_data_directory = datadir + 'In_situ_data/'
-racmo_arctic_data_directory = datadir + 'RACMO_2.4/PXARC11/2001/'
 snow_cover_extend_measure_dir = datadir + 'Snow_cover_Measure/'
 mask_directory = datadir + 'Mask/'
 remapdir = datadir + 'Remap/'
@@ -127,7 +134,7 @@ if Albedo:
     racmo_variable = 'albcsb'
     savename_suffix = '_Albedo'
 
-
+savename_suffix = savename_suffix + '_' +version
 
 if tilefractionplotting:
     savename_suffix = savename_suffix + '_' + tilefrac
@@ -151,9 +158,11 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     """plot scatter heatmap day of year"""
 
-    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=800)
+    fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=300)
 
     for month in range(12):
+
+        print(month)
 
         xindex = 0
         yindex = month
@@ -235,10 +244,10 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
             axs[xindex, yindex].annotate(('CC: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[0]+0.6*limits[1], limits[0]+0.20*limits[1]))
         axs[xindex, yindex].annotate('Bias = ' + str(np.round(bias, 3)), xy=(limits[0] + 0.6 * limits[1], limits[0] + 0.15 * limits[1]))
-    figure_save_directory = save_directory + '/' + year + '/' + variable + '/'
+    figure_save_directory = save_directory+ year + '/' + variable + '/'
     os.makedirs(figure_save_directory, exist_ok=True)
     figure_name = save_name + '_' + year + '.png'
-    plt.savefig(figure_save_directory + figure_name, dpi=800)
+    plt.savefig(figure_save_directory + figure_name, dpi=200)
 
 for _, year in enumerate(years):
     year = str(year)
