@@ -30,7 +30,7 @@ os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scr
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
-version = 'v2'
+version = 'v1'
 fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures'
 datadirectory = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Snow_cover_ease_grid/'
 remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
@@ -139,7 +139,7 @@ for year in ['2002', '2003', '2004']:
 
     """First Season"""
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=300)
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
     fig.suptitle('First season')
 
     ice_mask.plot(ax=axs[0], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
@@ -171,7 +171,7 @@ for year in ['2002', '2003', '2004']:
 
     os.makedirs(fig_save_directory+'/'+year, exist_ok=True)
 
-    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_acc_season.png', dpi=300)
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_acc_season.png', dpi=400)
     plt.close()
 
     """Last Season"""
@@ -182,7 +182,7 @@ for year in ['2002', '2003', '2004']:
     cmap = 'Blues'
     levels = 30
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=300)
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
     fig.suptitle('Last season')
 
     axs[0].coastlines(resolution='110m', alpha=0.5)
@@ -211,7 +211,7 @@ for year in ['2002', '2003', '2004']:
     axs[1].annotate('Mean: '+str(np.round(measure_mean, 2)), (-3500000, -3500000))
     plt.tight_layout()
 
-    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_melt_season.png', dpi=300)
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_melt_season.png', dpi=400)
     plt.close()
 
     """Season difference"""
@@ -225,7 +225,7 @@ for year in ['2002', '2003', '2004']:
     cmap = 'seismic'
     levels = 29
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=300)
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
 
     axs[0].coastlines(resolution='110m', alpha=0.5)
     axs[1].coastlines(resolution='110m', alpha=0.5)
@@ -252,4 +252,4 @@ for year in ['2002', '2003', '2004']:
 
     plt.tight_layout()
 
-    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_season_difference.png', dpi=300)
+    plt.savefig(fig_save_directory+'/'+year+'/racmo_'+version+'_measure_season_difference.png', dpi=400)
