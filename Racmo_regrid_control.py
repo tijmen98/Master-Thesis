@@ -136,8 +136,8 @@ if Day_of_year_calculation == True:
     rows = measure_ease['rows'].values
     cols = measure_ease['cols'].values
     
-    first_day_measure = np.zeros((len(rows),len(cols)))
-    last_day_measure = np.zeros((len(rows),len(cols)))
+    first_day_measure = np.zeros((len(rows), len(cols)))
+    last_day_measure = np.zeros((len(rows), len(cols)))
     
     for col in range(len(cols)):
         for row in range(len(rows)):

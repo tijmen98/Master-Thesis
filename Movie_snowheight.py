@@ -108,7 +108,7 @@ for year in years:
         ax.coastlines(resolution='50m')
         ax.add_feature(cfeature.LAND)
 
-        ax.contourf(rlon, rlat, forest, cmap='Greens', transform = ccrs.RotatedPole(pole_longitude=ds.rotated_pole.grid_north_pole_longitude,
+        ax.contourf(rlon, rlat, forest, vmin = 0, vmax = 2, cmap='Greens', transform = ccrs.RotatedPole(pole_longitude=ds.rotated_pole.grid_north_pole_longitude,
                             pole_latitude=ds.rotated_pole.grid_north_pole_latitude))
 
         stat_dots = gdf.plot(column='bias', ax=ax, markersize=20, cmap=cmap, norm=norm, transform=ccrs.PlateCarree())
@@ -125,6 +125,7 @@ for year in years:
         plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Bias [cm]')
 
         ax.set_title(month_names[month-1] + ' ' + year, size='xx-large')
+
 
         plt.savefig(fig_save_directory+year+'/month_'+str(month)+'_bias_plot.png')
 
