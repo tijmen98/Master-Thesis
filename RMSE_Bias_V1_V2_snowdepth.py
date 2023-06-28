@@ -1,7 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 fig_save_dir = '/Users/tijmen/Desktop/Figures_Thesis/'
+statistics_dir = '/Volumes/Tijmen/Master-Thesis/Data/Statistics/'
+
+arctic = False
+
+norway = False
+
+siberia = True
 
 V1_BIAS = [
     [25.60, 31.19, 33.63, 28.15, 12.59, 3.85, 1.39, 0.91, 1.14, 4.56, 12.00, 17.54],
@@ -12,7 +20,7 @@ V1_BIAS = [
 V2_BIAS = [
     [23.31, 30.93, 32.90, 26.72, 13.35, 3.45, 1.31, 0.85, 1.09, 4.54, 11.89, 17.44],
     [25.235, 29.506, 27.399, 23.629, 12.970, 3.639, 1.274, 0.837, 1.302, 3.293, 8.661, 17.535],
-[23.623, 25.581, 29.213, 25.424, 12.431, 3.928, 1.226, 0.784, 1.301, 3.303, 10.330, 19.396]
+    [23.623, 25.581, 29.213, 25.424, 12.431, 3.928, 1.226, 0.784, 1.301, 3.303, 10.330, 19.396]
             ]
 
 V1_RMSE = [
@@ -34,19 +42,58 @@ years = ['2002', '2003', '2004']
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
+V1_BIASES = pd.DataFrame(columns=years, index = month_names)
+V2_BIASES = pd.DataFrame(columns=years, index = month_names)
+
+V1_RMSES = pd.DataFrame(columns=years, index = month_names)
+V2_RMSES = pd.DataFrame(columns=years, index = month_names)
+
 for i, year in enumerate(years):
 
-    axs[0].plot(V1_BIAS[i], color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[0].plot(V2_BIAS[i], color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    year_dir = statistics_dir+year+'/Snowdepth/'
 
-    axs[1].plot(V1_RMSE[i], color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[1].plot(V2_RMSE[i], color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    if arctic:
 
-axs[1].plot(np.mean(V1_RMSE, axis=0), color='green', linewidth=1.5)
-axs[1].plot(np.mean(V2_RMSE, axis=0), color='orange', linewidth=1.5)
+        savename = 'BIAS_RMSE_snowdepth_arctic.png'
 
-axs[0].plot(np.mean(V1_BIAS, axis=0), color='green', linewidth=1.5, label='Version 1 monthly mean')
-axs[0].plot(np.mean(V2_BIAS, axis=0), color='orange', linewidth=1.5, label='Version 2 monthly mean')
+        V1_BIAS= pd.read_csv(year_dir+'BIAS_arctic_snowdepth_v1.csv', index_col=0)
+        V2_BIAS= pd.read_csv(year_dir+'BIAS_arctic_snowdepth_v2.csv', index_col=0)
+        V1_RMSE= pd.read_csv(year_dir+'RMSE_arctic_snowdepth_v1.csv', index_col=0)
+        V2_RMSE= pd.read_csv(year_dir+'RMSE_arctic_snowdepth_v2.csv', index_col=0)
+
+    if norway:
+        savename = 'BIAS_RMSE_snowdepth_norway.png'
+
+        V1_BIAS= pd.read_csv(year_dir+'BIAS_norway_snowdepth_v1.csv', index_col=0)
+        V2_BIAS= pd.read_csv(year_dir+'BIAS_norway_snowdepth_v2.csv', index_col=0)
+        V1_RMSE= pd.read_csv(year_dir+'RMSE_norway_snowdepth_v1.csv', index_col=0)
+        V2_RMSE= pd.read_csv(year_dir+'RMSE_norway_snowdepth_v2.csv', index_col=0)
+
+    if siberia:
+        savename = 'BIAS_RMSE_snowdepth_siberia.png'
+
+        V1_BIAS= pd.read_csv(year_dir+'BIAS_syberia_snowdepth_v1.csv', index_col=0)
+        V2_BIAS= pd.read_csv(year_dir+'BIAS_syberia_snowdepth_v2.csv', index_col=0)
+        V1_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v1.csv', index_col=0)
+        V2_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v2.csv', index_col=0)
+
+
+    V1_BIASES.loc[:,year] = list(V1_BIAS.iloc[:, 0])
+    V2_BIASES.loc[:,year] = list(V2_BIAS.iloc[:, 0])
+    V1_RMSES.loc[:,year] = list(V1_RMSE.iloc[:, 0])
+    V2_RMSES.loc[:,year] = list(V2_RMSE.iloc[:, 0])
+
+    axs[0].plot(V1_BIAS, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[0].plot(V2_BIAS, color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+
+    axs[1].plot(V1_RMSE, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[1].plot(V2_RMSE, color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+
+axs[1].plot(np.mean(V1_RMSES.values, axis=1), color='green', linewidth=1.5)
+axs[1].plot(np.mean(V2_RMSES.values, axis=1), color='orange', linewidth=1.5)
+
+axs[0].plot(np.mean(V1_BIASES.values, axis=1), color='green', linewidth=1.5, label='Version 1 monthly mean')
+axs[0].plot(np.mean(V2_BIASES.values, axis=1), color='orange', linewidth=1.5, label='Version 2 monthly mean')
 
 axs[1].set_xlim(-1, 12)
 axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
@@ -54,17 +101,21 @@ axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 axs[0].set_xlim(-1, 12)
 axs[0].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
-axs[0].scatter(-0.5, np.mean(V1_BIAS), color='green', marker='+')
-axs[0].scatter(-0.5, np.mean(V2_BIAS), color='orange', marker='+')
+axs[0].scatter(-0.5, np.mean(V1_BIASES.values), color='green', marker='+')
+axs[0].scatter(-0.5, np.mean(V2_BIASES.values), color='orange', marker='+')
 
-axs[1].scatter(-0.5, np.mean(V1_RMSE), color='green', marker='+', label='Version 1 yearly mean')
-axs[1].scatter(-0.5, np.mean(V2_RMSE), color='orange', marker='+', label='Version 2 yearly mean')
+axs[1].scatter(-0.5, np.mean(V1_RMSES.values), color='green', marker='+', label='Version 1 yearly mean')
+axs[1].scatter(-0.5, np.mean(V2_RMSES.values), color='orange', marker='+', label='Version 2 yearly mean')
 
 axs[0].set_ylabel('Bias')
 axs[1].set_ylabel('RMSE')
 
+if siberia:
+    axs[0].set_ylim(-10, 10)
+    axs[1].set_ylim(0, 30)
+
 axs[0].legend()
 axs[1].legend()
 
-plt.savefig(fig_save_dir+'BIAS_RMSE_snowdepth.png', dpi=300)
+plt.savefig(fig_save_dir+savename, dpi=300)
 

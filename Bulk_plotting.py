@@ -42,8 +42,8 @@ Albedo = False
 no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
-arctic_domain_scatter = True
-norway_scatter = True
+arctic_domain_scatter = False
+norway_scatter = False
 alaska_scatter = False
 canada_scatter = False
 syberia_scatter = True
@@ -167,7 +167,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     for month in range(12):
 
-        print(month)
+        print(month_names[month])
 
         xindex = 0
         yindex = month
@@ -193,6 +193,8 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         var2_nan = [not bool for bool in np.isnan(var2)]
 
         if var2_nan.count(True) == 0:
+            list_RMSE.append(0)
+            list_BIAS.append(0)
             continue
 
         if not Snowdepth:
