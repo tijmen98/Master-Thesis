@@ -26,7 +26,7 @@ import Thesis_Functions.data as Data
 
 version = 'v2'
 
-years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -49,7 +49,7 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-forest_plot = True
+forest_plot = False
 tundra_plot = False
 tilefrac = 'tilefrac9'
 
@@ -230,6 +230,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
     os.makedirs(statistics_dir+year+'/Albedo', exist_ok=True)
 
     pd.DataFrame(list_RMSE).to_csv(statistics_dir+year+'/Albedo/RMSE_'+savename_suffix+'.csv')
+    pd.DataFrame(list_BIAS).to_csv(statistics_dir+year+'/Albedo/BIAS_'+savename_suffix+'.csv')
 
 for _, year in enumerate(years):
     year = str(year)
