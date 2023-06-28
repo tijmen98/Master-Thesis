@@ -66,5 +66,5 @@ axs[1].set_ylabel('RMSE')
 axs[0].legend()
 axs[1].legend()
 
-plt.savefig(fig_save_dir+'BIAS_RMSE.png', dpi=300)
+plt.savefig(fig_save_dir+'BIAS_RMSE_albedo.png', dpi=300)
 
