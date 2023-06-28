@@ -93,12 +93,16 @@ for i, year in enumerate(['2005', '2006', '2007']):
     oldBIAS = np.nanmean(measured_albedo[figrange[0]: figrange[1]]-new_albedo[figrange[0]: figrange[1]])
     newBIAS = np.nanmean(measured_albedo[figrange[0]: figrange[1]]-old_albedo[figrange[0]: figrange[1]])
 
-    axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, False, start_alb, 0.12, warm_relax, min_alb, max_alb), label='New scheme with param '+str(np.round(optimal_cold_relax, 2)), color='red')
+    axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, False, start_alb, 0.12, warm_relax, min_alb, max_alb), label='New scheme', color='red')
     axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, True, start_alb, 0.008, warm_relax, min_alb, max_alb), label='Old scheme', color='green')
     axs[i].plot(measured_albedo, label='Measured', color='black')
     axs[i].set_xlim(figrange[0], figrange[1])
+    axs[i].set_ylabel('Albedo')
     axs[i].legend()
-    axs[i].set_title('Albedo '+year)
+    axs[i].set_title(year)
+
+axs[2].set_xlabel('Day')
+
 
 plt.savefig('/Users/tijmen/Desktop/Albedo_fit/albedo_sodankyla_late.png', dpi=300)
 

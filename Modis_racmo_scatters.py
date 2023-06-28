@@ -26,7 +26,7 @@ import Thesis_Functions.data as Data
 
 version = 'v2'
 
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -50,7 +50,7 @@ flat_europe_scatter = False
 """Only map stations in tile with certain tilefraction"""
 
 forest_plot = False
-tundra_plot = False
+tundra_plot = True
 tilefrac = 'tilefrac9'
 
 area_map = False
@@ -129,8 +129,8 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """Define labels per variable"""
 
-    xlabel = 'Modis' + variable
-    ylabel = 'Racmo' + variable
+    xlabel = 'Modis clear sky albedo'
+    ylabel = 'Racmo clear sky albedo'
 
 
     """plot scatter heatmap day of year"""
@@ -215,7 +215,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
         """Add statistics"""
 
-        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         try:
             axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         except:

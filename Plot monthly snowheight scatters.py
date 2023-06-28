@@ -83,7 +83,7 @@ for year in ['2002', '2003', '2004']:
 
             axs[xindex,yindex].scatter(in_situ, racmo, c=c, s = 1, cmap=plt.cm.RdYlBu_r,norm=mpl.colors.LogNorm())
             axs[xindex,yindex].set_title(month_names[month])
-            axs[xindex,yindex].set_xlabel('In_situ')
+            axs[xindex,yindex].set_xlabel('In situ')
             axs[xindex,yindex].set_ylabel('Racmo')
             axs[xindex,yindex].plot(range(figrange),range(figrange),color='black',linestyle=(0,(3,3)),zorder=10,alpha=0.5)
             axs[xindex,yindex].set_xlim(0,figrange)

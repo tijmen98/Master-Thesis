@@ -77,6 +77,11 @@ for i, year in enumerate(years):
         V1_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v1.csv', index_col=0)
         V2_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v2.csv', index_col=0)
 
+        V1_BIAS[6:8] = np.nan
+        V2_BIAS[6:8] = np.nan
+        V1_RMSE[6:8] = np.nan
+        V2_RMSE[6:8] = np.nan
+
 
     V1_BIASES.loc[:,year] = list(V1_BIAS.iloc[:, 0])
     V2_BIASES.loc[:,year] = list(V2_BIAS.iloc[:, 0])
@@ -84,16 +89,16 @@ for i, year in enumerate(years):
     V2_RMSES.loc[:,year] = list(V2_RMSE.iloc[:, 0])
 
     axs[0].plot(V1_BIAS, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[0].plot(V2_BIAS, color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[0].plot(V2_BIAS, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
 
     axs[1].plot(V1_RMSE, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[1].plot(V2_RMSE, color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[1].plot(V2_RMSE, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
 
 axs[1].plot(np.mean(V1_RMSES.values, axis=1), color='green', linewidth=1.5)
-axs[1].plot(np.mean(V2_RMSES.values, axis=1), color='orange', linewidth=1.5)
+axs[1].plot(np.mean(V2_RMSES.values, axis=1), color='red', linewidth=1.5)
 
-axs[0].plot(np.mean(V1_BIASES.values, axis=1), color='green', linewidth=1.5, label='Version 1 monthly mean')
-axs[0].plot(np.mean(V2_BIASES.values, axis=1), color='orange', linewidth=1.5, label='Version 2 monthly mean')
+axs[0].plot(np.mean(V1_BIASES.values, axis=1), color='green', linewidth=1.5, label='Old, monthly mean')
+axs[0].plot(np.mean(V2_BIASES.values, axis=1), color='red', linewidth=1.5, label='New,  monthly mean')
 
 axs[1].set_xlim(-1, 12)
 axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
@@ -101,18 +106,24 @@ axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 axs[0].set_xlim(-1, 12)
 axs[0].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
-axs[0].scatter(-0.5, np.mean(V1_BIASES.values), color='green', marker='+')
-axs[0].scatter(-0.5, np.mean(V2_BIASES.values), color='orange', marker='+')
+axs[0].scatter(-0.5, np.nanmean(V1_BIASES.values), color='green', marker='+')
+axs[0].scatter(-0.5, np.nanmean(V2_BIASES.values), color='red', marker='+')
 
-axs[1].scatter(-0.5, np.mean(V1_RMSES.values), color='green', marker='+', label='Version 1 yearly mean')
-axs[1].scatter(-0.5, np.mean(V2_RMSES.values), color='orange', marker='+', label='Version 2 yearly mean')
+axs[1].scatter(-0.5, np.nanmean(V1_RMSES.values), color='green', marker='+', label='Old, yearly mean')
+axs[1].scatter(-0.5, np.nanmean(V2_RMSES.values), color='red', marker='+', label='New, yearly mean')
 
-axs[0].set_ylabel('Bias')
-axs[1].set_ylabel('RMSE')
+axs[0].set_ylabel('Bias [cm]')
+axs[1].set_ylabel('RMSE [cm]')
 
 if siberia:
     axs[0].set_ylim(-10, 10)
     axs[1].set_ylim(0, 30)
+
+    axs[0].vlines([5, 8], -10, 10, color='black', linestyle=(0, (1, 1)), linewidth=0.4 )
+    axs[1].vlines([5, 8],  0, 30, color='black', linestyle=(0, (1, 1)), linewidth=0.4)
+
+    axs[0].annotate('not enough snow', xy=(5.2,0))
+    axs[1].annotate('not enough  snow', xy=(5.2 , 15))
 
 axs[0].legend()
 axs[1].legend()

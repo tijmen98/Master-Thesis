@@ -219,6 +219,9 @@ for year in ['2002', '2003', '2004']:
     acc_bias = np.nanmean(ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked'])
     melt_bias = np.nanmean(ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked'])
 
+    acc_rmse = np.sqrt(np.nanmean((ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked'])**2))
+    melt_rmse= np.sqrt(np.nanmean((ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked'])**2))
+
     vmin = -50
     vmax = 50
 
@@ -249,6 +252,9 @@ for year in ['2002', '2003', '2004']:
 
     axs[0].annotate('Bias: '+str(np.round(acc_bias, 2)), (-3500000, -3500000))
     axs[1].annotate('Bias: '+str(np.round(melt_bias, 2)), (-3500000, -3500000))
+
+    axs[0].annotate('RMSE: '+str(np.round(acc_rmse, 2)), (-2000000, -3500000))
+    axs[1].annotate('RMSE: '+str(np.round(melt_rmse, 2)), (-2000000, -3500000))
 
     plt.tight_layout()
 

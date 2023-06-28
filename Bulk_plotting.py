@@ -42,8 +42,8 @@ Albedo = False
 no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
-arctic_domain_scatter = False
-norway_scatter = False
+arctic_domain_scatter = True
+norway_scatter = True
 alaska_scatter = False
 canada_scatter = False
 syberia_scatter = True
@@ -153,8 +153,8 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     """Define labels per variable"""
 
-    xlabel = 'Modis' + variable
-    ylabel = 'Racmo' + variable
+    xlabel = 'In situ snow depth [cm]'
+    ylabel = 'Racmo snow depth [cm]'
 
 
     """plot scatter heatmap day of year"""

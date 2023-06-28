@@ -37,16 +37,16 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', '
 for i, year in enumerate(years):
 
     axs[0].plot(V1_BIAS[i], color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[0].plot(V2_BIAS[i], color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[0].plot(V2_BIAS[i], color='red', linewidth=0.5, linestyle=(0, (1, 1)))
 
     axs[1].plot(V1_RMSE[i], color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[1].plot(V2_RMSE[i], color='orange', linewidth=0.5, linestyle=(0, (1, 1)))
+    axs[1].plot(V2_RMSE[i], color='red', linewidth=0.5, linestyle=(0, (1, 1)))
 
 axs[1].plot(np.mean(V1_RMSE, axis=0), color='green', linewidth=1.5)
-axs[1].plot(np.mean(V2_RMSE, axis=0), color='orange', linewidth=1.5)
+axs[1].plot(np.mean(V2_RMSE, axis=0), color='red', linewidth=1.5)
 
-axs[0].plot(np.mean(V1_BIAS, axis=0), color='green', linewidth=1.5, label='Version 1 monthly mean')
-axs[0].plot(np.mean(V2_BIAS, axis=0), color='orange', linewidth=1.5, label='Version 2 monthly mean')
+axs[0].plot(np.mean(V1_BIAS, axis=0), color='green', linewidth=1.5, label='Old, monthly mean')
+axs[0].plot(np.mean(V2_BIAS, axis=0), color='red', linewidth=1.5, label='New, monthly mean')
 
 axs[1].set_xlim(-1, 12)
 axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
@@ -55,13 +55,13 @@ axs[0].set_xlim(-1, 12)
 axs[0].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
 axs[0].scatter(-0.5, np.mean(V1_BIAS), color='green', marker='+')
-axs[0].scatter(-0.5, np.mean(V2_BIAS), color='orange', marker='+')
+axs[0].scatter(-0.5, np.mean(V2_BIAS), color='red', marker='+')
 
-axs[1].scatter(-0.5, np.mean(V1_RMSE), color='green', marker='+', label='Version 1 yearly mean')
-axs[1].scatter(-0.5, np.mean(V2_RMSE), color='orange', marker='+', label='Version 2 yearly mean')
+axs[1].scatter(-0.5, np.mean(V1_RMSE), color='green', marker='+', label='Old, yearly mean')
+axs[1].scatter(-0.5, np.mean(V2_RMSE), color='red', marker='+', label='New, yearly mean')
 
-axs[0].set_ylabel('Bias')
-axs[1].set_ylabel('RMSE')
+axs[0].set_ylabel('Bias [albedo]')
+axs[1].set_ylabel('RMSE [albedo]')
 
 axs[0].legend()
 axs[1].legend()
