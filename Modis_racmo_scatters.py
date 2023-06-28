@@ -24,9 +24,9 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-version = 'v1'
+version = 'v2'
 
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -49,7 +49,7 @@ flat_europe_scatter = False
 
 """Only map stations in tile with certain tilefraction"""
 
-forest_plot = False
+forest_plot = True
 tundra_plot = False
 tilefrac = 'tilefrac9'
 
@@ -82,6 +82,8 @@ remapdir = datadir + 'Remap/'
 snow_cover_analysis_dir = datadir + 'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 modis_directory = datadir+'MODIS/'
+statistics_dir = '/Volumes/Tijmen/Master-Thesis/Data/Statistics/'
+
 
 fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures/'
 
@@ -135,6 +137,9 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=300)
 
+    list_RMSE = []
+    list_BIAS = []
+
     for month in range(12):
 
         print(month_names[month])
@@ -183,6 +188,9 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
+        list_RMSE.append(RMSE)
+        list_BIAS.append(bias)
+
         bins = 80
 
         hist, xedges, yedges = np.histogram2d(var2, var1, bins=bins)
@@ -218,6 +226,10 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
     os.makedirs(figure_save_directory, exist_ok=True)
     figure_name = save_name + '_' + year + '.png'
     plt.savefig(figure_save_directory + figure_name, dpi=300)
+
+    os.makedirs(statistics_dir+year+'/Albedo', exist_ok=True)
+
+    pd.DataFrame(list_RMSE).to_csv(statistics_dir+year+'/Albedo/RMSE_'+savename_suffix+'.csv')
 
 for _, year in enumerate(years):
     year = str(year)

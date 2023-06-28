@@ -30,7 +30,7 @@ months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
-Snowdepth = True
+Snowdepth = False
 Surface_temp = False
 Precipitation = False
 Albedo = False
@@ -88,6 +88,7 @@ remapdir = datadir + 'Remap/'
 snow_cover_analysis_dir = datadir + 'Snow_cover_analyses/Snow_cover_ease_grid/'
 download_measure_dir = 'Download_3-4/'
 modis_directory = datadir+'MODIS/'
+statistics_dir = '/Volumes/Tijmen/Master-Thesis/Data/Statistics/'
 
 """Bounding boxes for study area"""
 
@@ -158,6 +159,10 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     """plot scatter heatmap day of year"""
 
+
+    list_RMSE = []
+    list_BIAS = []
+
     fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=300)
 
     for month in range(12):
@@ -208,6 +213,9 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
+        list_RMSE.append(RMSE)
+        list_BIAS.append(bias)
+
         bins = np.round((len(var2)/1000)*4, 0).astype(int)
         if bins < 15:
             bins = int(15)
@@ -248,6 +256,10 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
     os.makedirs(figure_save_directory, exist_ok=True)
     figure_name = save_name + '_' + year + '.png'
     plt.savefig(figure_save_directory + figure_name, dpi=200)
+
+    os.makedirs(statistics_dir+year+'/Snowdepth', exist_ok=True)
+
+    pd.DataFrame(list_RMSE).to_csv(statistics_dir+year+'/Snowdepth/RMSE_'+savename_suffix+'.csv')
 
 for _, year in enumerate(years):
     year = str(year)
