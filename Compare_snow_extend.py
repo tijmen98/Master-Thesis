@@ -140,7 +140,7 @@ for year in ['2002', '2003', '2004']:
     """First Season"""
 
     fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
-    fig.suptitle('First season')
+    fig.suptitle('Accumulation season')
 
     ice_mask.plot(ax=axs[0], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
     ice_mask.plot(ax=axs[1], cmap='Oranges', transform=ccrs.epsg(6931), add_colorbar=False)
@@ -183,7 +183,7 @@ for year in ['2002', '2003', '2004']:
     levels = 30
 
     fig, axs = plt.subplots(1, 2, figsize=(12, 5), subplot_kw={'projection': ccrs.NorthPolarStereo()}, dpi=400)
-    fig.suptitle('Last season')
+    fig.suptitle('Melt season')
 
     axs[0].coastlines(resolution='110m', alpha=0.5)
     axs[1].coastlines(resolution='110m', alpha=0.5)

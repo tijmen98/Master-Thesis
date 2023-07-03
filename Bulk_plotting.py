@@ -23,7 +23,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-version = 'v2'
+version = 'v1'
 
 years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -44,10 +44,10 @@ no_nan_data = False
 """Monthly scatters of snowheight in a certain domain:"""
 arctic_domain_scatter = True
 norway_scatter = True
-alaska_scatter = False
-canada_scatter = False
+alaska_scatter = True
+canada_scatter = True
 syberia_scatter = True
-flat_europe_scatter = False
+flat_europe_scatter = True
 
 """Map showing the study areas"""
 
