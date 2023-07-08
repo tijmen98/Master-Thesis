@@ -43,6 +43,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 tilefrac = 'tilefrac5'                  #tilefraction over which calculations are done
 tilefrac_threshold = 0                  #threshold for tilefraction
 moving_average_window = 3
+constant_date = '-04-01'
 """Calculation control"""
 
 select_stations = False                 # Select stations that are in arctic domain
@@ -58,7 +59,8 @@ racmo_snowextent = False       # get total snow covered tilefraction
 combine_snow_extend = False     # Combine snow extend netcdfs in one file
 snow_extend_statistics = False      # calculate length of melt and accumulation season
 albedo_extraction = False      # extract modis albedo at in_situ measurement locations
-mask_albedo = True       # select only tiles that are completely covered with snow
+mask_albedo = False              # select only tiles that are completely covered with snow
+mask_albedo_constant = True
 aws_data_modification = False       # AWS data from finnland saved as daily mean
 aws_weather = False     # AWS weather data to yearly files
 racmo_clear_sky = False    # Calculate racmo clear sky albedo from clear sky radiative fluxes
@@ -687,6 +689,50 @@ for _ , year in enumerate(years):
         os.makedirs(racmo_arctic_data_directory+'NC_MD/'+year+'/', exist_ok=True)
         racmo_albedo_masked.to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_masked_new.nc')
         del (racmo_albedo_masked)
+
+
+    if mask_albedo_constant:
+
+        print('Masking albedo for constant date: '+constant_date)
+
+        tilefrac5 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac5'+racmo_filename_additive).sel(
+            time=slice(year + '-01-01', year + '-12-31'))['tilefrac5']
+        tilefrac7 = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/tilefrac7'+racmo_filename_additive).sel(
+            time=slice(year + '-01-01', year + '-12-31'))['tilefrac7']
+        zsa = xr.open_dataset(racmo_arctic_data_directory + 'NC_DEFAULT/cosznt'+racmo_filename_additive).sel(
+            time=slice(year + '-01-01', year + '-12-31'))['cosznt']
+
+        snowcover = tilefrac5 + tilefrac7
+
+        del(tilefrac5)
+        del(tilefrac7)
+
+        modis_albedo = xr.open_dataset(modis_data_directory + year+'_RCG.nc')['Albedo']
+
+        modis_albedo_no = modis_albedo.where(modis_albedo['lat'] < 75)
+        modis_albedo_no = modis_albedo_no.where(modis_albedo_no.values > 0.05)
+        modis_albedo_no = modis_albedo_no.where(zsa.squeeze().values < np.cos(np.radians(55)))
+        modis_albedo_rolmean = modis_albedo_no.rolling(time=moving_average_window, center=True).mean()
+
+        modis_albedo_masked = modis_albedo_rolmean.where(snowcover.sel(time=year+constant_date).values == 1)
+        del(modis_albedo_rolmean)
+        modis_albedo_masked.to_netcdf(modis_data_directory + year + '_RCG_constant_new.nc')
+        del(modis_albedo_masked)
+
+        racmo_albedo = xr.open_dataset(racmo_arctic_data_directory+'NC_MD/Clearsky_albedo_calculated.nc').squeeze().sel(
+            time=slice(year + '-01-01', year + '-12-31'))['Clear-sky_albedo']
+        racmo_albedo = racmo_albedo.where(modis_albedo.values > 0.05, np.nan)
+        racmo_albedo = racmo_albedo.where(racmo_albedo['lat'] <75)
+        racmo_albedo = racmo_albedo.where(zsa.squeeze().values < np.cos(np.radians(55)))
+        del(modis_albedo)
+        racmo_albedo_rolmean = racmo_albedo.rolling(time=moving_average_window, center=True).mean()
+        del(racmo_albedo)
+        racmo_albedo_masked = racmo_albedo_rolmean.where(snowcover.sel(time=year+constant_date) == 1)
+        del (racmo_albedo_rolmean)
+        os.makedirs(racmo_arctic_data_directory+'NC_MD/'+year+'/', exist_ok=True)
+        racmo_albedo_masked.squeeze().to_netcdf(racmo_arctic_data_directory+'NC_MD/'+year+'/Clearsky_albedo_calculated_constant_new.nc')
+        del (racmo_albedo_masked)
+
 
     if aws_data_modification:
 

@@ -82,7 +82,6 @@ for i, year in enumerate(years):
         V1_RMSE[6:8] = np.nan
         V2_RMSE[6:8] = np.nan
 
-
     V1_BIASES.loc[:,year] = list(V1_BIAS.iloc[:, 0])
     V2_BIASES.loc[:,year] = list(V2_BIAS.iloc[:, 0])
     V1_RMSES.loc[:,year] = list(V1_RMSE.iloc[:, 0])
@@ -93,6 +92,12 @@ for i, year in enumerate(years):
 
     axs[1].plot(V1_RMSE, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
     axs[1].plot(V2_RMSE, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
+
+
+test = pd.concat([pd.DataFrame(V1_BIASES.mean(axis=1)).rename(columns={0:'V1_bias'}),
+                  pd.DataFrame(V2_BIASES.mean(axis=1)).rename(columns={0:'V2_bias'}),
+                  pd.DataFrame(V1_RMSES.mean(axis=1)).rename(columns={0:'V1_rmse'}),
+                  pd.DataFrame(V2_RMSES.mean(axis=1)).rename(columns={0:'V2_rmse'})]).to_csv(statistics_dir+savename.split('.')[0]+'.csv')
 
 axs[1].plot(np.mean(V1_RMSES.values, axis=1), color='green', linewidth=1.5)
 axs[1].plot(np.mean(V2_RMSES.values, axis=1), color='red', linewidth=1.5)

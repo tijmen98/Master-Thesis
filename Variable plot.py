@@ -27,7 +27,8 @@ import Thesis_Functions.plotting as plotting
 datadir = "/Volumes/Tijmen/Master-Thesis/Data/"
 
 year = str(2002)
-time = 100
+startmonth = '03'
+endmonth= '04'
 safevariable = 'ALBEDO'
 variable = 'Clear-sky_albedo'
 
@@ -38,36 +39,38 @@ if desktop:
     print('Directory structure: desktop')
     datadir = "E:/Master-Thesis/Data/"
 
-racmo_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_new/NC_MD/Clearsky_albedo_calculated.nc')
-modis_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_v2/NC_MD/Clearsky_albedo_calculated.nc')
-racmo_albedo = racmo_ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=time).squeeze()
-modis_albedo = modis_ds[variable].sel(time=slice(year+'/01/01',year+'/12/31')).isel(time=time).squeeze()
+tilefrac6 = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_new/NC_DEFAULT/tilefrac6.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['tilefrac6']
+tilefrac7 = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_new/NC_DEFAULT/tilefrac7.KNMI-2001.PXARC11.RACMO24_1_complete6_UAR_q_noice_khalo6_era5q.DD.nc')['tilefrac7']
 
-racmo_albedo = racmo_albedo-modis_albedo
+forest = tilefrac6.isel(time=0)+tilefrac7.isel(time=0)
 
-rlon = racmo_ds.rlon.values
-rlat = racmo_ds.rlat.values
+forest = forest.where(forest>0.4).squeeze()
 
-plt.figure(figsize=(15, 5), dpi=400)
 
-data_crs = ccrs.RotatedPole(pole_longitude=racmo_ds.rotated_pole.grid_north_pole_longitude,
-                            pole_latitude=racmo_ds.rotated_pole.grid_north_pole_latitude)
+var1_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_new/NC_MD/Clearsky_albedo_calculated.nc')
+var2_ds = xr.open_dataset(datadir+'RACMO_2.4/PXARC11/2001_v2/NC_MD/Clearsky_albedo_calculated.nc')
+var1_dr = var1_ds[variable].sel(time=slice(year+'/'+startmonth+'/01', year+'/'+endmonth+'/01')).mean(dim='time').squeeze()
+var2_dr = var2_ds[variable].sel(time=slice(year+'/'+startmonth+'/01', year+'/'+endmonth+'/01')).mean(dim='time').squeeze()
+
+var_dif_dr = var2_dr-var1_dr
+
+rlon = var1_ds.rlon.values
+rlat = var1_ds.rlat.values
+
+plt.figure(figsize=(8, 8), dpi=400)
+
+data_crs = ccrs.RotatedPole(pole_longitude=var1_ds.rotated_pole.grid_north_pole_longitude,
+                            pole_latitude=var1_ds.rotated_pole.grid_north_pole_latitude)
 levels=20
-norm = colors.Normalize(vmin=-0.2, vmax=0.2)
+norm = colors.Normalize(vmin=-0.1, vmax=0.1)
 
-ax1 = plt.subplot(1, 2, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
-result1 = ax1.contourf(rlon, rlat, racmo_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
+ax1 = plt.subplot(1, 1, 1, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
+result1 = ax1.contourf(rlon, rlat, var_dif_dr, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
 ax1.coastlines(resolution='50m')
 plt.colorbar(result1, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
-ax1.set_title('Racmo clear sky albedo '+year, size='xx-large')
+ax1.set_title('Racmo clear sky albedo April '+year, size='xx-large')
 
-ax2 = plt.subplot(1, 2, 2, projection=ccrs.Stereographic(central_longitude=0., central_latitude=90.) )
-result2 = ax2.contourf(rlon, rlat, modis_albedo, levels=levels, norm=norm, extend='both', cmap='coolwarm', transform=data_crs)
-ax2.coastlines(resolution='50m')
-plt.colorbar(result2, orientation='horizontal', label='Albedo', extend='both', fraction=0.046, pad=0.04)
-ax2.set_title('Modis clear sky albedo '+year, size='xx-large')
-
-plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/Modis_V1-V2.jpeg', dpi=400)
+plt.savefig('/Users/tijmen/Desktop/Figures_Thesis/V1-V2_albedo_.jpeg', dpi=230)
 
 plt.close()
 

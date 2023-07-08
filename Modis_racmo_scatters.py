@@ -25,13 +25,13 @@ import Thesis_Functions.data as Data
 """Variables"""
 
 version = 'v2'
-
-years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
-Albedo = True
+Albedo_masked = False
+Albedo_constant = True
 MODIS_filter = False
 
 """plotting control"""
@@ -47,11 +47,11 @@ flat_europe_scatter = False
 """Map showing the study areas"""
 
 
-"""Only map stations in tile with certain tilefraction"""
+"""Only plot for stations in tile with certain properties:"""
 
 forest_plot = False
-tundra_plot = True
-tilefrac = 'tilefrac9'
+tundra_plot = False
+constant_number = True
 
 area_map = False
 
@@ -124,7 +124,10 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     """Define limits per variable"""
 
-    if Albedo:
+    if Albedo_masked:
+        limits = [0, 1]
+
+    if Albedo_constant:
         limits = [0, 1]
 
     """Define labels per variable"""
@@ -239,9 +242,15 @@ for _, year in enumerate(years):
     """Year specific directories"""
     in_situ_data_directory_year = in_situ_data_directory + year + '/Calculated/'
 
-    if Albedo:
+    if Albedo_masked:
         var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_masked_new.nc')
         var2_year = xr.open_dataset(modis_directory+year+'_RCG_masked_new.nc')
+
+    if Albedo_constant:
+        var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_constant_new.nc')
+        var2_year = xr.open_dataset(modis_directory+year+'_RCG_constant_new.nc')
+        savename_suffix = savename_suffix +'constant_area_'
+
 
     """Import area specifications"""
 
