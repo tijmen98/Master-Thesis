@@ -10,12 +10,12 @@ import pandas as pd
 fig_save_dir = '/Users/tijmen/Desktop/Figures_Thesis/'
 statistics_dir = '/Volumes/Tijmen/Master-Thesis/Data/Statistics/'
 
-arctic = False
+arctic = True
 
-constant = True
+constant = False
 
 
-fig, axs = plt.subplots(2, 1, dpi=300, figsize=(8, 6))
+fig, axs = plt.subplots(2, 1, dpi=130, figsize=(16, 12))
 
 
 years = ['2002', '2003', '2004', '2005']
@@ -56,8 +56,12 @@ for i, year in enumerate(years):
     V1_RMSES.loc[:,year] = list(V1_RMSE.iloc[:, 0])
     V2_RMSES.loc[:,year] = list(V2_RMSE.iloc[:, 0])
 
-    axs[0].plot(V1_BIAS, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
-    axs[0].plot(V2_BIAS, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
+    if i == 0:
+        axs[0].plot(V1_BIAS, color='green', linewidth=0.5, linestyle=(0, (1, 1)), label='Old, one year')
+        axs[0].plot(V2_BIAS, color='red', linewidth=0.5, linestyle=(0, (1, 1)), label='New, one year')
+    else:
+        axs[0].plot(V1_BIAS, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
+        axs[0].plot(V2_BIAS, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
 
     axs[1].plot(V1_RMSE, color='green', linewidth=0.5, linestyle=(0, (1, 1)))
     axs[1].plot(V2_RMSE, color='red', linewidth=0.5, linestyle=(0, (1, 1)))
@@ -72,8 +76,8 @@ pd.concat([pd.DataFrame(V1_RMSES),
 axs[1].plot(np.mean(V1_RMSES.values, axis=1), color='green', linewidth=1.5)
 axs[1].plot(np.mean(V2_RMSES.values, axis=1), color='red', linewidth=1.5)
 
-axs[0].plot(np.mean(V1_BIASES.values, axis=1), color='green', linewidth=1.5, label='Old, monthly mean')
-axs[0].plot(np.mean(V2_BIASES.values, axis=1), color='red', linewidth=1.5, label='New,  monthly mean')
+axs[0].plot(np.mean(V1_BIASES.values, axis=1), color='green', linewidth=1.5, label='Old, multi-year mean')
+axs[0].plot(np.mean(V2_BIASES.values, axis=1), color='red', linewidth=1.5, label='New,  multi-year mean')
 
 axs[1].set_xlim(-1, 12)
 axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
@@ -81,14 +85,17 @@ axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 axs[0].set_xlim(-1, 12)
 axs[0].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
-axs[0].scatter(-0.5, np.nanmean(V1_BIASES.values), color='green', marker='+')
-axs[0].scatter(-0.5, np.nanmean(V2_BIASES.values), color='red', marker='+')
+axs[0].scatter(-0.5, np.nanmean(V1_BIASES.values), color='green', marker='+', label='Old, mean value')
+axs[0].scatter(-0.5, np.nanmean(V2_BIASES.values), color='red', marker='+', label='New, mean value')
 
-axs[1].scatter(-0.5, np.nanmean(V1_RMSES.values), color='green', marker='+', label='Old, yearly mean')
-axs[1].scatter(-0.5, np.nanmean(V2_RMSES.values), color='red', marker='+', label='New, yearly mean')
+axs[1].scatter(-0.5, np.nanmean(V1_RMSES.values), color='green', marker='+')
+axs[1].scatter(-0.5, np.nanmean(V2_RMSES.values), color='red', marker='+')
 
 axs[0].set_ylabel('Bias [cm]')
 axs[1].set_ylabel('RMSE [cm]')
+
+axs[0].hlines(0, 0, 12, color='black', zorder=-1, linewidth=0.5, linestyle=(0, (1, 1)))
+axs[1].hlines(0, 0, 12, color='black', zorder=-1, linewidth=0.5, linestyle=(0, (1, 1)))
 
 axs[0].legend()
 axs[1].legend()
