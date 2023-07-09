@@ -43,7 +43,7 @@ days_missing_limit = 5                  #Maximum number of missing days before s
 tilefrac = 'tilefrac5'                  #tilefraction over which calculations are done
 tilefrac_threshold = 0                  #threshold for tilefraction
 moving_average_window = 3
-constant_date = '-04-01'
+constant_date = '-04-30'
 """Calculation control"""
 
 select_stations = False                 # Select stations that are in arctic domain

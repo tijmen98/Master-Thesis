@@ -25,13 +25,13 @@ import Thesis_Functions.data as Data
 """Variables"""
 
 version = 'v2'
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2005]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
 
-Albedo_masked = False
-Albedo_constant = True
+Albedo_masked = True
+Albedo_constant = False
 MODIS_filter = False
 
 """plotting control"""
@@ -103,7 +103,7 @@ polygon_canada = Polygon([(-130.0, 65.0), (-130.0, 85.0), (-60.0, 85.0), (-80.0,
 
 
 
-print('Variable: Albedo')
+print('Version: '+version)
 
 variable = 'Clear_sky_albedo'
 racmo_filename = 'Clearsky_albedo_calculated_masked.nc'
@@ -118,6 +118,9 @@ if tundra_plot:
 elif forest_plot:
     print('Location is Forest')
     savename_suffix = savename_suffix + '_' + 'forest'
+
+if Albedo_constant:
+    savename_suffix = savename_suffix + '_constant_area_'
 
 
 def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
@@ -249,7 +252,6 @@ for _, year in enumerate(years):
     if Albedo_constant:
         var1_year = xr.open_dataset(racmo_arctic_data_directory +'NC_MD/'+ year + '/Clearsky_albedo_calculated_constant_new.nc')
         var2_year = xr.open_dataset(modis_directory+year+'_RCG_constant_new.nc')
-        savename_suffix = savename_suffix +'constant_area_'
 
 
     """Import area specifications"""
