@@ -42,12 +42,12 @@ Albedo = False
 no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
-arctic_domain_scatter = True
-norway_scatter = True
-alaska_scatter = True
-canada_scatter = True
-syberia_scatter = True
-flat_europe_scatter = True
+arctic_domain_scatter = False
+norway_scatter = False
+alaska_scatter = False
+canada_scatter = False
+syberia_scatter = False
+flat_europe_scatter = False
 
 """Map showing the study areas"""
 
@@ -57,7 +57,7 @@ flat_europe_scatter = True
 tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
-area_map = False
+area_map = True
 
 """File names"""
 
@@ -350,11 +350,11 @@ if area_map:
     ax.add_feature(cfeature.LAND)
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS)
-    gpd.GeoDataFrame(geometry=[polygon_norway]).plot(ax=ax, transform=ccrs.PlateCarree(), color='red')
-    gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='green')
-    gpd.GeoDataFrame(geometry=[polygon_syberia]).plot(ax=ax, transform=ccrs.PlateCarree(), color='blue')
-    gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='orange')
-    gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='yellow')
+    gpd.GeoDataFrame(geometry=[polygon_norway]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#009ADE')
+    gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#F28522')
+    gpd.GeoDataFrame(geometry=[polygon_syberia]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FF1F5B')
+    gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#AF58BA')
+    gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FFC61E')
 
     plt.savefig(fig_save_directory+'map_study_areas.png', dpi=500)
 
