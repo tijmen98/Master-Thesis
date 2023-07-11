@@ -13,7 +13,7 @@ norway = False
 siberia = True
 
 v1 = True
-v2 = False
+v2 = True
 
 if v1:
     savename = 'BIAS_RMSE_snowdepth_v1.png'
@@ -25,7 +25,12 @@ if v1 and v2:
     savename = 'BIAS_RMSE_snowdepth_v1-v2.png'
 
 
-fig, axs = plt.subplots(2, 1, dpi=130, figsize=(16, 12))
+fig, axs = plt.subplots(3, 1, dpi=130, figsize=(16, 12), gridspec_kw={'height_ratios': [2, 2, 1]}, sharex=True)
+axs[2].set_yscale('linear')
+axs[2].annotate('Maximum number of datapoints:', xy=(0, 27), size=5)
+
+for x in range(3):
+    axs[x].grid()
 
 years = ['2002', '2003', '2004']
 
@@ -38,18 +43,21 @@ V2_BIASES = pd.DataFrame(columns=years, index = month_names)
 V1_RMSES = pd.DataFrame(columns=years, index = month_names)
 V2_RMSES = pd.DataFrame(columns=years, index = month_names)
 
-for area in ['arctic', 'norway', 'siberia']:
+V1_DPS = pd.DataFrame(columns=years, index = month_names)
+V2_DPS = pd.DataFrame(columns=years, index = month_names)
+
+for i_area, area in enumerate(['Arctic', 'Norway', 'Siberia']):
     arctic = False
     norway = False
     siberia = False
 
-    if area =='arctic':
+    if area =='Arctic':
         arctic = True
         color = 'black'
-    elif area =='norway':
+    elif area =='Norway':
         norway = True
         color = '#009ADE'
-    elif area == 'siberia':
+    elif area == 'Siberia':
         siberia = True
         color = '#FF1F5B'
 
@@ -63,13 +71,16 @@ for area in ['arctic', 'norway', 'siberia']:
             V2_BIAS= pd.read_csv(year_dir+'BIAS_arctic_snowdepth_v2.csv', index_col=0)
             V1_RMSE= pd.read_csv(year_dir+'RMSE_arctic_snowdepth_v1.csv', index_col=0)
             V2_RMSE= pd.read_csv(year_dir+'RMSE_arctic_snowdepth_v2.csv', index_col=0)
-
+            V1_DP = pd.read_csv(year_dir+'DATAPOINTS_arctic_snowdepth_v1.csv', index_col=0)
+            V2_DP = pd.read_csv(year_dir+'DATAPOINTS_arctic_snowdepth_v2.csv', index_col=0)
         if norway:
 
             V1_BIAS= pd.read_csv(year_dir+'BIAS_norway_snowdepth_v1.csv', index_col=0)
             V2_BIAS= pd.read_csv(year_dir+'BIAS_norway_snowdepth_v2.csv', index_col=0)
             V1_RMSE= pd.read_csv(year_dir+'RMSE_norway_snowdepth_v1.csv', index_col=0)
             V2_RMSE= pd.read_csv(year_dir+'RMSE_norway_snowdepth_v2.csv', index_col=0)
+            V1_DP = pd.read_csv(year_dir+'DATAPOINTS_norway_snowdepth_v1.csv', index_col=0)
+            V2_DP = pd.read_csv(year_dir+'DATAPOINTS_norway_snowdepth_v2.csv', index_col=0)
 
         if siberia:
 
@@ -77,6 +88,8 @@ for area in ['arctic', 'norway', 'siberia']:
             V2_BIAS= pd.read_csv(year_dir+'BIAS_syberia_snowdepth_v2.csv', index_col=0)
             V1_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v1.csv', index_col=0)
             V2_RMSE= pd.read_csv(year_dir+'RMSE_syberia_snowdepth_v2.csv', index_col=0)
+            V1_DP = pd.read_csv(year_dir+'DATAPOINTS_syberia_snowdepth_v1.csv', index_col=0)
+            V2_DP = pd.read_csv(year_dir+'DATAPOINTS_syberia_snowdepth_v2.csv', index_col=0)
 
             V1_BIAS[6:8] = np.nan
             V2_BIAS[6:8] = np.nan
@@ -87,6 +100,8 @@ for area in ['arctic', 'norway', 'siberia']:
         V2_BIASES.loc[:,year] = list(V2_BIAS.iloc[:, 0])
         V1_RMSES.loc[:,year] = list(V1_RMSE.iloc[:, 0])
         V2_RMSES.loc[:,year] = list(V2_RMSE.iloc[:, 0])
+        V1_DPS.loc[:,year] = list(V1_DP.iloc[:, 0])
+        V2_DPS.loc[:,year] = list(V2_DP.iloc[:, 0])
 
 
     test = pd.concat([pd.DataFrame(V1_BIASES.mean(axis=1)).rename(columns={0:'V1_bias'}),
@@ -110,6 +125,11 @@ for area in ['arctic', 'norway', 'siberia']:
         axs[0].scatter(-0.5, np.nanmean(V2_BIASES.values), color=color, marker='X', s=20)
         axs[1].scatter(-0.5, np.nanmean(V2_RMSES.values), color=color, marker='X')
 
+    axs[2].plot(np.nanmean((V1_DPS/np.max(V1_DPS)*100), axis=1), color=color, linewidth=1)
+    axs[2].annotate(area+': '+str(int(np.round(np.mean(np.max(V1_DPS)), 0))), xy=(0, 20 - i_area*7), size=5)
+
+
+
 axs[1].set_xlim(-1, 12)
 axs[1].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
@@ -118,6 +138,7 @@ axs[0].set_xticks(np.linspace(0, 10, 6), month_names[::2])
 
 axs[0].set_ylabel('Bias [cm]')
 axs[1].set_ylabel('RMSE [cm]')
+axs[2].set_ylabel('N [% of max]')
 
 axs[0].hlines(0, 0, 12, color='black', linewidth=1, zorder=-1)
 axs[1].hlines(0, 0, 12, color='black', linewidth=1, zorder=-1)

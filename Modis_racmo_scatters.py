@@ -25,7 +25,7 @@ import Thesis_Functions.data as Data
 """Variables"""
 
 version = 'v2'
-years = [2005]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002, 2003, 2004, 2005]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -49,9 +49,8 @@ flat_europe_scatter = False
 
 """Only plot for stations in tile with certain properties:"""
 
-forest_plot = False
+forest_plot = True
 tundra_plot = False
-constant_number = True
 
 area_map = False
 
@@ -145,6 +144,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     list_RMSE = []
     list_BIAS = []
+    list_datapoints = []
 
     for month in range(12):
 
@@ -194,6 +194,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
         RMSE = np.sqrt(np.mean(((var1 - var2) ** 2)))
         bias = np.mean(var1-var2)
 
+        list_datapoints.append(len(var1))
         list_RMSE.append(RMSE)
         list_BIAS.append(bias)
 
@@ -237,6 +238,7 @@ def monthly_scatter(year, var1_year, var2_year, save_directory, save_name):
 
     pd.DataFrame(list_RMSE).to_csv(statistics_dir+year+'/Albedo/RMSE_'+savename_suffix+'.csv')
     pd.DataFrame(list_BIAS).to_csv(statistics_dir+year+'/Albedo/BIAS_'+savename_suffix+'.csv')
+    pd.DataFrame(list_datapoints).to_csv(statistics_dir + year + '/Albedo/DATAPOINTS_' + savename_suffix + '.csv')
 
 for _, year in enumerate(years):
     year = str(year)

@@ -38,6 +38,7 @@ for year in ['2002', '2003', '2004']:
 
     mean_bias = []
     mean_RMSE = []
+    datapoints = []
 
     if scatterplot == True:
 
@@ -68,10 +69,17 @@ for year in ['2002', '2003', '2004']:
             in_situ = in_situ.flatten('F')
             racmo = racmo.flatten('F')
 
+            try:
+                datapoint = len(in_situ)
+            except:
+                datapoint = 0
+
+
             RMSE = np.sqrt(np.mean(((racmo-in_situ)**2)))
             regres =scipy.stats.linregress(racmo, in_situ)
             bias = np.mean(racmo - in_situ)
 
+            datapoints.append(datapoint)
             mean_bias.append(bias)
             mean_RMSE.append(RMSE)
 

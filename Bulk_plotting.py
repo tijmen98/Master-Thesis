@@ -23,7 +23,7 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-version = 'v1'
+version = 'v2'
 
 years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -46,7 +46,7 @@ arctic_domain_scatter = False
 norway_scatter = False
 alaska_scatter = False
 canada_scatter = False
-syberia_scatter = False
+syberia_scatter = True
 flat_europe_scatter = False
 
 """Map showing the study areas"""
@@ -57,7 +57,7 @@ flat_europe_scatter = False
 tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
-area_map = True
+area_map = False
 
 """File names"""
 
@@ -162,6 +162,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     list_RMSE = []
     list_BIAS = []
+    list_datapoints = []
 
     fig, axs = plt.subplots(3, 4, figsize=(20, 16), dpi=300)
 
@@ -195,6 +196,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
         if var2_nan.count(True) == 0:
             list_RMSE.append(0)
             list_BIAS.append(0)
+            list_datapoints.append(0.)
             continue
 
         if not Snowdepth:
@@ -217,6 +219,8 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
         list_RMSE.append(RMSE)
         list_BIAS.append(bias)
+        list_datapoints.append(len(var1))
+
 
         bins = np.round((len(var2)/1000)*4, 0).astype(int)
         if bins < 15:
@@ -263,6 +267,7 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
     pd.DataFrame(list_RMSE).to_csv(statistics_dir+year+'/Snowdepth/RMSE_'+figure_name.split('_')[0]+savename_suffix+'.csv')
     pd.DataFrame(list_BIAS).to_csv(statistics_dir+year+'/Snowdepth/BIAS_'+figure_name.split('_')[0]+savename_suffix+'.csv')
+    pd.DataFrame(list_datapoints).to_csv(statistics_dir + year + '/Snowdepth/DATAPOINTS_' + figure_name.split('_')[0] + savename_suffix + '.csv')
 
 for _, year in enumerate(years):
     year = str(year)
