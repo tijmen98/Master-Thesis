@@ -30,13 +30,13 @@ os.chdir('/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Python_scr
 import Thesis_Functions.calculations as calculations
 import Thesis_Functions.data as data
 import Thesis_Functions.plotting as plotting
-version = 'v1'
+version = 'v2'
 fig_save_directory = '/Users/tijmen/Desktop/RACMO_24_'+version+'_figures'
 datadirectory = '/Volumes/Tijmen/Master-Thesis/Data/Snow_cover_analyses/Snow_cover_ease_grid/'
 remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
 
 
-for year in ['2002', '2003', '2004']:
+for year in ['2002']:
 
     print('year is '+year)
 
@@ -151,7 +151,7 @@ for year in ['2002', '2003', '2004']:
     ds_racmo_acc['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, zorder=10,
                                                                 vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
     ds_measure_acc['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
-                                                                  vmin=vmin, vmax=vmax, levels=levels)
+                                                                  vmin=vmin, vmax=vmax, levels=levels, cbar_kwargs={'label':'Snow cover duration [days]'})
     axs[0].set_title('Racmo')
     axs[1].set_title('Satellite')
 
@@ -191,7 +191,7 @@ for year in ['2002', '2003', '2004']:
     ds_racmo_melt['Snowextent_masked'].plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap,
                                                                 vmin=vmin, vmax=vmax, levels=levels, add_colorbar=False)
     ds_measure_melt['Snowextent_masked'].plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap,
-                                                                  vmin=vmin, vmax=vmax, levels=levels)
+                                                                  vmin=vmin, vmax=vmax, levels=levels, cbar_kwargs={'label':'Snow cover duration [days]'})
 
     ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
     ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)
@@ -236,7 +236,7 @@ for year in ['2002', '2003', '2004']:
     (ds_racmo_acc['Snowextent_masked'] - ds_measure_acc['Snowextent_masked']).plot(ax=axs[0], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
                                             levels=levels, add_colorbar=False)
     (ds_racmo_melt['Snowextent_masked'] - ds_measure_melt['Snowextent_masked']).plot(ax=axs[1], transform=ccrs.epsg(6931), cmap=cmap, vmin=vmin, vmax=vmax,
-                                           levels=levels)
+                                           levels=levels, cbar_kwargs={'label':'Difference [days]'})
 
     ice_mask.plot(ax=axs[0], cmap='Oranges', add_colorbar=False)
     ice_mask.plot(ax=axs[1], cmap='Oranges', add_colorbar=False)

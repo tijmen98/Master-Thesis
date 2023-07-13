@@ -23,9 +23,9 @@ import Thesis_Functions.data as Data
 
 """Variables"""
 
-version = 'v2'
+version = 'v1'
 
-years = [2002, 2003, 2004]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']
@@ -46,7 +46,7 @@ arctic_domain_scatter = False
 norway_scatter = False
 alaska_scatter = False
 canada_scatter = False
-syberia_scatter = True
+syberia_scatter = False
 flat_europe_scatter = False
 
 """Map showing the study areas"""
@@ -57,7 +57,7 @@ flat_europe_scatter = False
 tilefractionplotting = False
 tilefrac = 'tilefrac9'
 
-area_map = False
+area_map = True
 
 """File names"""
 
@@ -350,17 +350,22 @@ print('Generating non yearly plots:')
 
 if area_map:
 
+    fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
+
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'projection': ccrs.Stereographic(central_longitude=0.,
                                                                                         central_latitude=90.)})
     ax.add_feature(cfeature.LAND)
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS)
     gpd.GeoDataFrame(geometry=[polygon_norway]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#009ADE')
-    gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#F28522')
+    #gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#F28522')
     gpd.GeoDataFrame(geometry=[polygon_syberia]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FF1F5B')
-    gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#AF58BA')
-    gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FFC61E')
-
-    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=500)
+    #gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#AF58BA')
+    #gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FFC61E')
+    station_lat = 26.628
+    station_lon = 67.364
+    ax.plot(station_lat, station_lon , marker='o', markersize=6, color='black', transform=ccrs.PlateCarree(), label='Sodankylä measurement station')
+    ax.legend()
+    plt.savefig(fig_save_directory+'map_study_areas.png', dpi=300)
 
 print('All plots done')

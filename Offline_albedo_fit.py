@@ -82,16 +82,15 @@ for i, year in enumerate(['2005', '2006', '2007']):
 
     # Retrieve the optimized value of cold_relax
     optimal_cold_relax = result.x[0]
-    print("Optimized cold_relax:", optimal_cold_relax)
 
     new_albedo = albedo_Scheme(snowfall, temperature, snowdepth, False, start_alb, 0.12, warm_relax, min_alb, max_alb)
     old_albedo = albedo_Scheme(snowfall, temperature, snowdepth, True, start_alb, 0.008, warm_relax, min_alb, max_alb)
 
-    oldRMSE = np.sqrt(np.nanmean((measured_albedo[figrange[0]: figrange[1]]-new_albedo[figrange[0]: figrange[1]])**2))
-    newRMSE = np.sqrt(np.nanmean((measured_albedo[figrange[0]: figrange[1]]-old_albedo[figrange[0]: figrange[1]])**2))
+    newRMSE = np.sqrt(np.nanmean((measured_albedo[figrange[0]: figrange[1]]-new_albedo[figrange[0]: figrange[1]])**2))
+    oldRMSE = np.sqrt(np.nanmean((measured_albedo[figrange[0]: figrange[1]]-old_albedo[figrange[0]: figrange[1]])**2))
 
-    oldBIAS = np.nanmean(measured_albedo[figrange[0]: figrange[1]]-new_albedo[figrange[0]: figrange[1]])
-    newBIAS = np.nanmean(measured_albedo[figrange[0]: figrange[1]]-old_albedo[figrange[0]: figrange[1]])
+    newBIAS = np.nanmean(new_albedo[figrange[0]: figrange[1]])-np.nanmean(measured_albedo[figrange[0]: figrange[1]])
+    oldBIAS = np.nanmean(old_albedo[figrange[0]: figrange[1]])-np.nanmean(measured_albedo[figrange[0]: figrange[1]])
 
     axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, False, start_alb, 0.12, warm_relax, min_alb, max_alb), label='New scheme', color='red')
     axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, True, start_alb, 0.008, warm_relax, min_alb, max_alb), label='Old scheme', color='green')
@@ -101,8 +100,11 @@ for i, year in enumerate(['2005', '2006', '2007']):
     axs[i].legend()
     axs[i].set_title(year)
 
-axs[2].set_xlabel('Day')
 
+    print(year+' & ' + str(np.round(oldBIAS, 3))+' & '+str(np.round(newBIAS, 3))+' & '+str(np.round(abs(oldBIAS)-abs(newBIAS), 3))+' & '+str(np.round(oldRMSE, 3))+' & '+str(np.round(newRMSE, 3))+' & '+str(np.round(abs(oldRMSE)-abs(newRMSE), 3)))
+
+
+axs[2].set_xlabel('Day')
 
 plt.savefig('/Users/tijmen/Desktop/Albedo_fit/albedo_sodankyla_late.png', dpi=300)
 
