@@ -358,10 +358,10 @@ if area_map:
     ax.add_feature(cfeature.COASTLINE)
     ax.add_feature(cfeature.BORDERS)
     gpd.GeoDataFrame(geometry=[polygon_norway]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#009ADE')
-    #gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#F28522')
+    gpd.GeoDataFrame(geometry=[polygon_flat_europe]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#F28522', alpha=0)
     gpd.GeoDataFrame(geometry=[polygon_syberia]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FF1F5B')
-    #gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#AF58BA')
-    #gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FFC61E')
+    gpd.GeoDataFrame(geometry=[polygon_alaska]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#AF58BA', alpha=0)
+    gpd.GeoDataFrame(geometry=[polygon_canada]).plot(ax=ax, transform=ccrs.PlateCarree(), color='#FFC61E', alpha=0 )
     station_lat = 26.628
     station_lon = 67.364
     ax.plot(station_lat, station_lon , marker='o', markersize=6, color='black', transform=ccrs.PlateCarree(), label='Sodankylä measurement station')

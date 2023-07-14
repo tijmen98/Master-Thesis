@@ -19,7 +19,7 @@ import Thesis_Functions.plotting as plotting
 
 
 fig_save_directory = '/Users/tijmen/Desktop/Figures_Thesis/'
-remapdir = '/Users/tijmen/Documents/Tijmen/Climate_Physics/Thesis_local/Data/Remap/'
+remapdir = '/Volumes/Tijmen/Master-Thesis/Data/Remap/'
 
 
 RC4_GR = xr.open_dataset(remapdir+'Greenland_EASE.nc')
@@ -27,7 +27,6 @@ RC4_ARC = xr.open_dataset(remapdir+'ARCTIC_EASE.nc')
 
 RC4_GR = RC4_GR['botflx'].isel(time=0)
 RC4_ARC = RC4_ARC['botflx'].isel(time=0)
-
 RC4_GR = RC4_GR+100000
 RC4_ARC = RC4_ARC+100000
 
