@@ -81,8 +81,8 @@ for year in years:
 
         """Import statistics"""
 
-        vmin= -20
-        vmax = 20
+        vmin= -500
+        vmax = -400
 
         station_statistics = pd.read_csv(monthdir_in_situ+'/Calculated_statistics.csv', index_col=0)
         bias = station_statistics.loc['bias']
@@ -116,15 +116,15 @@ for year in years:
         ax.set_xlim(-3939996.3398490055, 4199452.516011998)
         ax.set_ylim(-4171531.5955094383, 4399068.623679058)
 
-        axpos = ax.get_position()
-        pos_x = axpos.x0 + axpos.width + 0.01
-        pos_y = axpos.y0
-        cax_width = 0.01
-        cax_height = axpos.height
-        pos_cax = fig.add_axes([pos_x, pos_y, cax_width, cax_height])
-        plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Bias [cm]')
+        #axpos = ax.get_position()
+        #pos_x = axpos.x0 + axpos.width + 0.01
+        #pos_y = axpos.y0
+        #cax_width = 0.01
+        #cax_height = axpos.height
+        #pos_cax = fig.add_axes([pos_x, pos_y, cax_width, cax_height])
+        #plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=pos_cax, label='Bias [cm]')
 
-        ax.set_title(month_names[month-1] + ' ' + year, size='xx-large')
+        #ax.set_title(month_names[month-1] + ' ' + year, size='xx-large')
 
 
         plt.savefig(fig_save_directory+year+'/month_'+str(month)+'_bias_plot.png')
