@@ -96,7 +96,7 @@ for i, year in enumerate(['2005', '2006', '2007']):
     axs[i].plot(albedo_Scheme(snowfall, temperature, snowdepth, True, start_alb, 0.008, warm_relax, min_alb, max_alb), label='Old scheme', color='green')
     axs[i].plot(measured_albedo, label='Measured', color='black')
     axs[i].set_xlim(figrange[0], figrange[1])
-    axs[i].set_xticks[np.linspace(50, 100, 5), np.linspace(0, 50, 5)]
+    axs[i].set_xticks(np.linspace(50, 100, 6), np.linspace(0, 50, 6))
     axs[i].set_ylabel('Albedo')
     axs[i].legend()
     axs[i].set_title(year)
@@ -106,8 +106,6 @@ for i, year in enumerate(['2005', '2006', '2007']):
 
 
 axs[2].set_xlabel('Day')
-
-plt.show()
 
 plt.savefig('/Users/tijmen/Desktop/Albedo_fit/albedo_sodankyla_late.png', dpi=300)
 
