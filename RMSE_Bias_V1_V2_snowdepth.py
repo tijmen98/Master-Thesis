@@ -13,7 +13,7 @@ norway = False
 siberia = True
 
 v1 = True
-v2 = True
+v2 = False
 
 if v1:
     savename = 'BIAS_RMSE_snowdepth_v1.png'
@@ -118,12 +118,12 @@ for i_area, area in enumerate(['Arctic', 'Norway', 'Siberia']):
         axs[0].plot(np.mean(V2_BIASES.values, axis=1), color=color, linewidth=1.5)
 
     if v1:
-        axs[0].scatter(-0.5, np.nanmean(V1_BIASES.values), color=color, marker='v', s=20)
-        axs[1].scatter(-0.5, np.nanmean(V1_RMSES.values), color=color, marker='v')
+        axs[0].scatter(-0.75, np.nanmean(V1_BIASES.values), color=color, marker='v', s=20)
+        axs[1].scatter(-0.75, np.nanmean(V1_RMSES.values), color=color, marker='v')
 
     if v2:
-        axs[0].scatter(-0.5, np.nanmean(V2_BIASES.values), color=color, marker='X', s=20)
-        axs[1].scatter(-0.5, np.nanmean(V2_RMSES.values), color=color, marker='X')
+        axs[0].scatter(-0.25, np.nanmean(V2_BIASES.values), color=color, marker='X', s=20)
+        axs[1].scatter(-0.25, np.nanmean(V2_RMSES.values), color=color, marker='X')
 
     axs[2].plot(np.nanmean((V1_DPS/np.max(V1_DPS)*100), axis=1), color=color, linewidth=1)
     axs[2].annotate(area+': '+str(int(np.round(np.mean(np.max(V1_DPS)), 0))), xy=(0, 20 - i_area*7), size=5)
@@ -159,7 +159,7 @@ if v1 and v2:
                              'Old scheme average value',
                              'New scheme average value',
                              'Old albedo scheme',
-                             'New albedo scheme'])
+                             'New albedo scheme'], prop={'size': 12})
 elif v1:
     axs[0].legend(legend_signs[0:4], ['Arctic domain',
                              'Siberia',
@@ -167,7 +167,13 @@ elif v1:
                              'Average value',
                              'New scheme average value',
                              'Old albedo scheme',
-                             'New albedo scheme'])
+                             'New albedo scheme'], prop={'size': 12})
+
+letters = \
+    ['a', 'b', 'c']
+
+for x in range(3):
+    axs[x].text(-0.1, 1.1, letters[x], transform=axs[x].transAxes, size=10, weight='bold')
 
 plt.savefig(fig_save_dir+savename, dpi=300)
 

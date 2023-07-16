@@ -48,23 +48,23 @@ constant_date = '-04-30'
 
 select_stations = False                 # Select stations that are in arctic domain
 tilefrac_select = False                 # select stations whithin a certain tilefraction
-calc_stationdata = False        # Extract station snowdepth data and save to csv per station
+calc_stationdata = False                # Extract station snowdepth data and save to csv per station
 interpolate_stationdata = False         # Fill missing values
-fill_nan = False                         # Interpolate
+fill_nan = False                        # Interpolate
 monthly_data = False                    # Extract montly data and save to directories according to structure: /Year/Month/variable.nc
-monthly_data_racmo_only = False     # extract monthly data at in_situ measurement locations in racmo only
-select_stations_area = False    # select stations that are in focus area
-monthly_statistics = False      # get monthly statistics (bias, mean, RMSE)
-racmo_snowextent = False       # get total snow covered tilefraction
-combine_snow_extend = False     # Combine snow extend netcdfs in one file
-snow_extend_statistics = False      # calculate length of melt and accumulation season
-albedo_extraction = False      # extract modis albedo at in_situ measurement locations
-mask_albedo = False              # select only tiles that are completely covered with snow
+monthly_data_racmo_only = False         # extract monthly data at in_situ measurement locations in racmo only
+select_stations_area = False            # select stations that are in focus area
+monthly_statistics = False              # get monthly statistics (bias, mean, RMSE)
+racmo_snowextent = False                # get total snow covered tilefraction
+combine_snow_extend = False             # Combine snow extend netcdfs in one file
+snow_extend_statistics = False          # calculate length of melt and accumulation season
+albedo_extraction = False               # extract modis albedo at in_situ measurement locations
+mask_albedo = False                     # select only tiles that are completely covered with snow
 mask_albedo_constant = True
-aws_data_modification = False       # AWS data from finnland saved as daily mean
-aws_weather = False     # AWS weather data to yearly files
-racmo_clear_sky = False    # Calculate racmo clear sky albedo from clear sky radiative fluxes
-identify_albedo_events_aws = False  # Identify albedo events in racmo timeseries
+aws_data_modification = False           # AWS data from finnland saved as daily mean
+aws_weather = False                     # AWS weather data to yearly files
+racmo_clear_sky = False                 # Calculate racmo clear sky albedo from clear sky radiative fluxes
+identify_albedo_events_aws = False      # Identify albedo events in racmo timeseries
 
 """File names"""
 

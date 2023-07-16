@@ -42,7 +42,7 @@ Albedo = False
 no_nan_data = False
 
 """Monthly scatters of snowheight in a certain domain:"""
-arctic_domain_scatter = False
+arctic_domain_scatter = True
 norway_scatter = False
 alaska_scatter = False
 canada_scatter = False
@@ -247,15 +247,11 @@ def monthly_scatter(stations, year, var1_directory, var2_directory, save_directo
 
         """Add statistics"""
 
-        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[0]+0.6*limits[1], limits[0]+0.35*limits[1]))
+        axs[xindex, yindex].annotate(('RMSE:' + str(np.round(RMSE, 1))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
         try:
-            axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
+            axs[xindex, yindex].annotate(('Slope:' + str(np.round(output.beta[0], 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         except:
-            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.3*limits[1]))
-        try:
-            axs[xindex, yindex].annotate(('CC:' + str(np.round(regres.rvalue, 3))), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
-        except:
-            axs[xindex, yindex].annotate(('CC: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
+            axs[xindex, yindex].annotate(('Slope: none'), xy=(limits[0]+0.6*limits[1], limits[0]+0.25*limits[1]))
         axs[xindex, yindex].annotate(('N = '+str(len(var2))), xy=(limits[0]+0.6*limits[1], limits[0]+0.20*limits[1]))
         axs[xindex, yindex].annotate('Bias = ' + str(np.round(bias, 3)), xy=(limits[0] + 0.6 * limits[1], limits[0] + 0.15 * limits[1]))
     figure_save_directory = save_directory+ year + '/' + variable + '/'

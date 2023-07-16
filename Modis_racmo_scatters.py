@@ -25,7 +25,7 @@ import Thesis_Functions.data as Data
 """Variables"""
 
 version = 'v2'
-years = [2002, 2003, 2004, 2005]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
+years = [2002]  # list of years where data should be proccessed over, entire year is processed. Data should exist in format as specified
 months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                'November', 'December']

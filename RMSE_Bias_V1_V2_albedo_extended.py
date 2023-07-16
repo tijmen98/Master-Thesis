@@ -12,7 +12,7 @@ fig_save_dir = '/Users/tijmen/Desktop/Figures_Thesis/'
 statistics_dir = '/Volumes/Tijmen/Master-Thesis/Data/Statistics/'
 
 v1 = True
-v2 = True
+v2 = False
 
 if v1:
     savename = 'BIAS_RMSE_albedo_v1.png'
@@ -172,7 +172,7 @@ if v1 and v2:
                                  'Old scheme average value',
                                  'New scheme average value',
                                  'Old albedo scheme',
-                                 'New albedo scheme'], prop={'size': 6})
+                                 'New albedo scheme'], prop={'size': 9})
 elif v1:
     axs[0].legend(legend_signs[0:5], ['Full snow cover only',
                                  'Constant pixels',
@@ -181,7 +181,13 @@ elif v1:
                                  'Average value',
                                  'New scheme average value',
                                  'Old albedo scheme',
-                                 'New albedo scheme'], prop={'size': 6})
+                                 'New albedo scheme'], prop={'size': 12})
+
+letters = \
+    ['a', 'b', 'c']
+
+for x in range(3):
+    axs[x].text(-0.1, 1.1, letters[x], transform=axs[x].transAxes, size=10, weight='bold')
 
 plt.savefig(fig_save_dir+savename, dpi=300)
 
